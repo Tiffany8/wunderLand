@@ -2,11 +2,13 @@ import requests
 
 import os #allows access to environmental variables
 
-from bs4 import BeautifulSoup #beautifulsoup library parses html/xml documents
+from bs4 import BeautifulSoup, SoupStrainer #beautifulsoup library parses html/xml documents
 
 from model import connect_to_db, db
 
 from sys import argv
+
+import xml.etree.ElementTree as ET
 
 # Note: you must run `source secrets.sh` before running this file
 # to make sure these environmental variables are set.
@@ -31,25 +33,56 @@ def get_work_common_knowledge_by_isbn(apikey, isbn):
 	
 	#unicode turned into utf8 in order to write into a file
 	work_common_knowledge_utf8 = work_common_knowledge_unicode.encode('utf-8')
-
+	# import pdb; pdb.set_trace()
 	#save the common knowledge text to a file
 	store_text_common_knowledge(work_common_knowledge_utf8, isbn)
 
-	return work_common_knowledge_utf8
-
+	return work_common_knowledge_unicode
 
 
 def store_text_common_knowledge(text,isbn):
  	"""This function runs through the get_work_common_knowledge_by_isbn(),
  	takes the common knowledge of a work and saves it to a text file."""
  	
- 	file_name = str(isbn) + ".txt"
+ 	file_name = str(isbn) + ".xml"
  	# import pdb; pdb.set_trace()
  	file = open(file_name, "w")
  	file.write(text)
  	file.close()
 
 
+def parse_common_knowledge_unicode(isbn):
+	file_to_parse = open(str(isbn)+".xml").read()
+	tree = ET.parse(str(isbn)+".xml")
+	root = tree.getroot()
+	ns={'lt':'http://www.librarything.com/'}
+	root.findall("lt:ltml", ns)
+	# import pdb; pdb.set_trace()
+	# return root.findall("lt:ltml", ns)
+
+	for placesmentioned in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
+		print placesmentioned.text
+	# root = ET.fromstring(file_to_parse)
+	# test = root.findall("./ltml/item/commonknowledge/fieldList")
+	# import pdb; pdb.set_trace()
+	# return test
+
+
+	# file_to_parse = open(str(isbn)+".xml").read()
+	# soup = BeautifulSoup(file_to_parse, 'xml')
+	
+	# placesmentioned = soup.find("field", attrs={"name":"placesmentioned"})
+
+	# only_placesmentioned_name = SoupStrainer(name="placesmentioned")
+	# # placesmentioned = soup.find_all("field")
+	# import pdb; pdb.set_trace()
+
+	# # test = placesmentioned.contents
+	# # print getattr(placesmentioned)
+	# print type(placesmentioned)
+	# print placesmentioned
+
+	
 
 #To DO figure out what goes in here!
 if __name__ == "__main__":
@@ -58,6 +91,8 @@ if __name__ == "__main__":
     # db.create_all()
 
     script, isbn = argv
+    # import pdb; pdb.set_trace()
+    # get_work_common_knowledge_by_isbn(apikey, isbn)
 
-    get_work_common_knowledge_by_isbn(apikey, isbn)
+    parse_common_knowledge_unicode(isbn)
    
