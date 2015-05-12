@@ -26,15 +26,16 @@ def get_work_common_knowledge_by_isbn(apikey, isbn):
 	# creates a class 'requests.models.Response' - prints common work
 	work_common_knowledge = requests.get('http://librarything.com/services/rest/1.1/', params=work_info)
 	
-	# turns common knowledge into a unicdoe
+	# turns common knowledge into a unicode
 	work_common_knowledge_unicode = work_common_knowledge.text
-	#TO DO -- figure out how to change the unicode to text!!!
-	work_common_knowledge_text.encode('utf-8')
+	
+	#unicode turned into utf8 in order to write into a file
+	work_common_knowledge_utf8 = work_common_knowledge_unicode.encode('utf-8')
+
 	#save the common knowledge text to a file
-	# store_text_common_knowledge(work_common_knowledge_text.text, isbn)
-	print type(work_common_knowledge_text)
-	print type(work_common_knowledge_text.text)
-	# return work_common_knowledge_text.text
+	store_text_common_knowledge(work_common_knowledge_utf8, isbn)
+
+	return work_common_knowledge_utf8
 
 
 
