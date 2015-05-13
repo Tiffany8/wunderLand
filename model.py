@@ -10,21 +10,15 @@ db = SQLAlchemy()
 # Part 1: Compose ORM
 
 
-
+#these are association tables created for many-to-many tables (FlaskSQLAlchemy)
+#books is the "lazy" table
 authors_ref = db.Table('authors_ref',
     db.Column('author_id', db.Integer, db.ForeignKey('authors.author_id')),
-    db.Column('isbn', db.Integer, db.ForeignKey('books.isbn'))
-)
+    db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
 
-# class Books(db.Model):
-#     isbn = db.Column(db.Integer, primary_key=True)
-#     authors = db.relationship('Author', secondary=authors,
-#         backref=db.backref('books', lazy='dynamic'))
-
-# class Author(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-
-
+locations_ref = db.Table('locations_ref', 
+	db.Column('locations_code', db.String(100), db.ForeignKey('locations.location_code')),
+	db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
 
 
 
@@ -39,6 +33,9 @@ class Book(db.Model):
 
     authors = db.relationship('Author', secondary=authors_ref,
         backref=db.backref('books', lazy='dynamic'))
+
+    locations = db.relationship('Location', secondary=locations_ref, 
+    	backref=db.backref('books', lazy='dynamic'))
 
     def __repr__(self):
         """Provide helpful representation when printed."""
@@ -57,23 +54,21 @@ class Author(db.Model):
 		return "<Author author_id=%d author=%s %s isbn=%d>" % (self.author_id, self.author_firstname, self.author_lastname, self.isbn)
 
 
-# class BookAuthor(db.Model):
-# 	__tablename__ = "bookauthors"
-# 	bookauthor_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-# 	isbn = db.Column(db.Integer, db.ForeignKey('books.isbn'))
-# 	author_id = db.Column(db.Integer, db.ForeignKey('authors.author_id'))
+class Location(db.Model):
 
-# 	author = db.relationship("Author", backref=db.backref("book_authors", order_by=Book.book_title))	
-# 	book = db.relationship("Book", backref=db.backref("book_authors", order_by=Author.author_lastname))
+	__tablename__ = "locations"
+	location_code = db.Column(db.String(100), primary_key=True)
+	location_city = db.Column(db.String(100), nullable=True)
+	location_state = db.Column(db.String(100), nullable=True)
+	location_country = db.Column(db.String(100), nullable=True)
 
-# 	def __repr__(self):
-# 		"""Provide helpful representation when printed."""
-# 		return "<BookAuthor bookauthor_id=%d isbn=%d author_id=%d>" % (self.bookauthor_id, self.isbn, self.author_id)
+	def __repr__(self):
 
+		return "<Location location=%s>" % (self.location_code)
 
 
 
-# End Part 1
+# End 
 ##############################################################################
 # Helper functions
 

@@ -4,7 +4,7 @@ import os #allows access to environmental variables
 
 from bs4 import BeautifulSoup, SoupStrainer #beautifulsoup library parses html/xml documents
 
-from model import Book, Author, connect_to_db, db
+from model import Book, Author, Location, connect_to_db, db
 
 from sys import argv
 
@@ -65,59 +65,44 @@ def parse_common_knowledge_for_book_info(isbn):
         book_copyright = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='originalpublicationdate']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text
         book_avg_rating = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:rating", ns).text
 
-        locations = []
+        #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
         for placesmentioned in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
-            location = (isbn, placesmentioned.text)
-            locations.append(location)
+            place = placesmentioned.text
+            place_list = place.split(', ')
+            # import pdb; pdb.set_trace()
+            #only pulling out places that have a city and state listed
+            if len(place_list) == 3:
+                location = Location(location_code=place,
+                                    location_city = place_list[0],
+                                    location_state = place_list[1],
+                                    location_country = place_list[2])
+            db.session.add(location)
+            
+            
+
         author = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:author", ns).text.split()
         author_firstname, author_lastname = author[0], author[1]
         summary = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='description']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.rstrip("]>").lstrip("<![CDATA[")
-        # book_cover_url = "http://covers.librarything.com/devkey/" + apikey + "/medium/isbn/" + isbn
-    # import pdb; pdb.set_trace()
+
         book = Book(isbn = isbn,
                 book_title = book_title,
                 book_copyright = book_copyright,
                 book_avg_rating = book_avg_rating,
-                summary = summary,
-                # book_cover_url = book_cover_url
+                summary = summary
                 )
         db.session.add(book)
 
         author = Author(author_firstname = author_firstname,
                         author_lastname = author_lastname
                         )
-        #magic stuff --- something about an isntance of a book referencing the authors table in model.py and appending something/author to list.....
+        #magic stuff --- something about an isntance of a book referencing the authors table in model.py and appending location/author to list.....
         book.authors.append(author)
+        book.locations.append(location)
 
         db.session.commit()
 
 
-        # print (isbn, book_title, book_copyright, summary, book_avg_rating)
-        # print (isbn, author)
-        # print summary
-    
-    
 
-
-# def parse_common_knowledge_for_location(isbn):    
-#   file_to_parse = open(str(isbn)+".xml").read()
-#   tree = ET.parse(str(isbn)+".xml")
-#   root = tree.getroot()
-#   ns={'lt':'http://www.librarything.com/'}
-
-#   # import pdb; pdb.set_trace()
-#   # return root.findall("lt:ltml", ns)
-
-#   #for extracting location
-#   for placesmentioned in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
-#       location = Location(isbn = isbn,
-#                           place = placesmentioned.text
-#                           )
-
-
-    
-
-#To DO figure out what goes in here!
 if __name__ == "__main__":
     connect_to_db(app)
 
@@ -125,6 +110,6 @@ if __name__ == "__main__":
 
     script, isbn = argv
 
-    get_work_common_knowledge_by_isbn(apikey, isbn)
+    # get_work_common_knowledge_by_isbn(apikey, isbn)
 
     parse_common_knowledge_for_book_info(isbn)   
