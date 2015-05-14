@@ -53,13 +53,22 @@ def search_for_books():
     # #   search query ('android')
     # # The method returns an apiclient.http.HttpRequest object that encapsulates
     # # all information needed to make the request, but it does not call the API.
-    request = service.volumes().list(source='public', q=user_book_query)
-
+    request = service.volumes().list(source='public', 
+                                    orderBy='newest', 
+                                    printType='books', 
+                                    q=user_book_query, 
+                                    startIndex=0,
+                                    maxResults=40,
+                                    fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,industryIdentifiers,authors,mainCategory)),totalItems")
+    # import pdb; pdb.set_trace()
     # # The execute() function on the HttpRequest object actually calls the API.
     # # It returns a Python object built from the JSON response. You can print this
     # # object or refer to the Books API documentation to determine its structure.
+    
     response = request.execute()
-    pprint.pprint(response)
+  
+    # pprint.pprint(response)
+   
 
     # # Accessing the response like a dict object with an 'items' key returns a list
     # # of item objects (books). The item object is a dict object with a 'volumeInfo'
@@ -72,37 +81,54 @@ def search_for_books():
     #     search_results_list.append((book['volumeInfo']['title'], 
     #                                 book['volumeInfo']['authors']))
     # print response.get('items', [])
-    print 'Found %d books:' % len(response['items'])
-    for book in response.get('items', []):
-        title = book.get('volumeInfo').get('title')
-        print "The title: ", title
-        authors = book.get('volumeInfo').get('authors')
-        print "Authors: ", authors
-        categories = book.get('volumeInfo').get('categories') 
-        print "Categories: ", categories
-        description = book.get('volumeInfo').get('description')
-        print "Description: ", description
-        thumbnail = book.get('volumeInfo').get('imageLinks').get('thumbnail')
-        print "Thumbnail link: ", thumbnail
-        publishedDate = book.get('volumeInfo').get('publishedDate')
-        print "Publication Date: ", publishedDate
-        previewLink = book.get('volumeInfo').get("previewLink") 
-        print "PreviewLink: ", previewLink    
+    # print 'Found %d books:' % len(response['items'])
+    maxResults=40
+   
+    page_number = 1
 
+    #add this stuff to database
+    # response['itemsPerPage'] = 20
+    # for book in response.get('items', []):
+    #     title = book.get('volumeInfo', {}).get('title')
+    #     # print "The title: ", title
+    #     authors = book.get('volumeInfo', {}).get('authors')
+    #     # print "Authors: ", authors
+    #     categories = book.get('volumeInfo', {}).get('categories') 
+    #     # print "Categories: ", categories
+    #     description = book.get('volumeInfo', {}).get('description')
+    #     # print "Description: ", description
+    #     thumbnail = book.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
+    #     # print "Thumbnail link: ", thumbnail
+    #     publishedDate = book.get('volumeInfo', {}).get('publishedDate')
+    #     # print "Publication Date: ", publishedDate
+    #     previewLink = book.get('volumeInfo', {}).get("previewLink") 
+        # print "PreviewLink: ", previewLink
+        # isbn = book.get('volumeInfo').get('industryIdentifiers')[1].get('identifier')    
+    print "search complete"
     # return render_template("searchresults.html")
     return render_template("searchresults.html", query_result_length=query_result_length,
-                                            response=response)
+                                            response=response, maxResults=40, page_number=1)
 
+@app.route('/moreresults/<int:page_number>', methods=['GET'])
+def search_results_pagination(page_number):
+    answer = flaskrequest.form.get('answer')
+    page_number = int(page_number) + 1
+    if answer:
 
-    #TO THINK ABOUT:::
-    #put the items in a list adn set to variable --- transfer that to the html page
-    #can look up how to iterate over dictionary in jinja but the order may be important 
-    #and dictionaries are unordered,.....
-    # print 'Found %d books:' % len(response['items'])
-    # for book in response.get('items', []):
-    #   print 'Title: %s, Authors: %s' % (
-    #     book['volumeInfo']['title'],
-    #     book['volumeInfo']['authors'])
+        request = service.volumes().list(source='public', 
+                                    orderBy='newest', 
+                                    printType='books', 
+                                    q=user_book_query, 
+                                    startIndex=(int(itemsPerPage) * int(page_number)) + 1,
+                                    maxResults=40,
+      
+                                    fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,industryIdentifiers,authors,mainCategory)),totalItems")
+        response = request.execute()
+
+    
+    
+    return redirect("/moreresults/<int:page_number>")
+
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the point

@@ -18,8 +18,25 @@
 		<p>Thumbnail Link: {{ book.get('volumeInfo').get('imageLinks').get('thumbnail') }}</p>
 		<p>Publication Year: {{ book.get('volumeInfo').get('publishedDate') }}</p>
 		<p><a href='{{ book.get("volumeInfo").get("previewLink") }}'>Preview Link</a></p>
+
 	{% endfor %}
-</div> 
+
+</div>
+
+<div class="footer">
+{# % for page_number in range(1, response['totalItems']|int, maxResults|int) % #}
+	<p>Displaying {{ page_number }} to {{ maxResults }} out of {{ response['totalItems'] }} results</p>
+	<div class="displayresults">
+		<form class="search-for-books" action='/moreresults/{{ page_number|int + 1 }}' method="POST">
+			<div class="search-for-books">
+				<label for="more_results">
+					<button type="submit" name="more_results" value="continue">
+				</label>
+			</div> 
+		</form>
+{# % endfor % #}
+
+</div>
 
 
 {% endblock %}
