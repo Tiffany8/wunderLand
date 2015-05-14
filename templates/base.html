@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+    <head>
+     
+      <title>wunderLand</title>
+    
+    </head>
+
+    <body>
+      
+    
+        <!-- show if logged in or not -->
+        <div class="logstatus">
+            
+        </div>
+
+        <!-- Show flashed messages -->
+        <div class="flash">
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <div class="alert alert-warning">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        </div>
+
+            
+        <hr>
+
+            {% block content %} put your content here {% endblock %}
+
+        <div class="footer">
+            <table>
+                <tr>
+                    <td><a id="home" href="/">Home</a></td>
+                    {% if "logged_in_user_id" in session %}
+                    <td><a id="my_page" href="/users/{{ session["logged_in_user_id"] }}">passport</a></td>
+                    <td><a id="movies" href="/movies">Movie List</a></td>
+                    <td><a href="/logout">log out</a></td>
+                    {% else %}
+                    <td><a href="/login">log in</a></td>
+                    {% endif %}
+                </tr>
+            </table>
+        </div>
+    
+    </body>
+
+</html>

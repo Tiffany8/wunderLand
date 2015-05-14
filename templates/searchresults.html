@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>wunderLand</h1>
+
+<div class="book-search-results">
+	<p>Found {{ query_result_length }} books:</p>
+	{% for book in response.get('items', []) %}
+		<img src="{{ book.get('volumeInfo').get('imageLinks').get('thumbnail') }}">
+		<p>Title: {{ book.get('volumeInfo').get('title') }}</p> 
+		{% if book.get('volumeInfo').get('authors') %}
+			<p>Author(s): {{ ", ".join(book.get('volumeInfo').get('authors')) }}</p>
+		{% endif %}
+		{% if book.get('volumeInfo').get('categories') %}
+			<p>Categories: {{ ", ".join(book.get('volumeInfo').get('categories')) }}</p>
+		{% endif %}
+		<p>Description: {{ book.get('volumeInfo').get('description') }}</p>
+		<p>Thumbnail Link: {{ book.get('volumeInfo').get('imageLinks').get('thumbnail') }}</p>
+		<p>Publication Year: {{ book.get('volumeInfo').get('publishedDate') }}</p>
+		<p><a href='{{ book.get("volumeInfo").get("previewLink") }}'>Preview Link</a></p>
+	{% endfor %}
+</div> 
+
+
+{% endblock %}
