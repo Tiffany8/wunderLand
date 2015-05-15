@@ -54,7 +54,7 @@ def search_for_books():
     # # The method returns an apiclient.http.HttpRequest object that encapsulates
     # # all information needed to make the request, but it does not call the API.
     request = service.volumes().list(source='public', 
-                                    orderBy='newest', 
+                                    orderBy='relevance', 
                                     printType='books', 
                                     q=user_book_query, 
                                     startIndex=0,
