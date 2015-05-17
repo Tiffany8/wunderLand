@@ -12,6 +12,10 @@ from server import app
 
 import xml.etree.ElementTree as ET
 
+from flask_sqlalchemy import SQLAlchemy
+
+from sqlalchemy import exc
+
 #from Google Books
 import pprint
 import sys
@@ -34,6 +38,7 @@ def book_database_seeding(google_api_key, apikey, query):
     list_tuples_commknow_isbn = get_LT_book_info(apikey, isbn_list)
     create_location_instance(list_tuples_commknow_isbn)
     db.session.commit()
+
 
 def google_book_search(query):
     """Using the Google Books API to query for books and store information about them."""
@@ -58,7 +63,7 @@ def google_book_search(query):
                                     orderBy='relevance', 
                                     printType='books', 
                                     q=query, 
-                                    startIndex=6,
+                                    startIndex=11,
                                     maxResults=5,
                                     fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,authors,mainCategory))")
 
@@ -113,21 +118,27 @@ def create_book_author_instance(response):
                                 publication_date = publishedDate,
                                 preview_link = previewLink,
                                 page_count = pageCount)
-                    isbn_list.append(book.isbn)
-                    print "an instance of a book created"
-                    db.session.add(book)
+                    try:
+                        db.session.add(book)
+                        isbn_list.append(book.isbn)
+                        print "an instance of a book created"
+                        if bookauthors:
+                            for name in bookauthors:
+                                author = Author(author_name = name)
+                                db.session.add(author)
+                                book.authors.append(author)
+                        print "instances of author created"
+                        if categories:
+                            for item in categories:
+                                category_instance = Category(category = item)
+                                db.session.add(category_instance)
+                                category_instance.books.append(book)
+                        db.session.commit()
 
-                    if bookauthors:
-                        for name in bookauthors:
-                            author = Author(author_name = name)
-                            db.session.add(author)
-                            book.authors.append(author)
-                    print "instances of author created"
-                    if categories:
-                        for item in categories:
-                            category_instance = Category(category = item)
-                            db.session.add(category_instance)
-                            category_instance.books.append(book)
+                    except exc.SQLAlchemyError:
+                        db.session.rollback()
+                        print "This book, ", book.isbn, "already exist in the database!"
+
             except ValueError:
                 print "ValueError. Skipping ", isbn
                 
