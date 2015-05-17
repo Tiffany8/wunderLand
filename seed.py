@@ -27,6 +27,8 @@ apikey = os.environ['LIBRARYTHING_DEVELOP_KEY']
 google_api_key = os.environ['GOOGLE_API_KEY']
 
 def book_database_seeding(google_api_key, apikey, query):
+    """Main fuction that runs the helper functions below to
+    search for books and seed the database with information. """
     response = google_book_search(query)
     isbn_list = create_book_author_instance(response)
     list_tuples_commknow_isbn = get_LT_book_info(apikey, isbn_list)
@@ -146,9 +148,6 @@ def create_book_author_instance(response):
 def get_LT_book_info(apikey, isbn_list):
     """This function takes a list of book instances, retrieves the isbn of a work (book), and returns the XML of the common knowledge from librarything.
     """
-    #TO DO Next I'm going to determine how to parse the text and store important info to a table.
-    #TO DO I also need to create a function for geting info by title, but for now, ISBN is pretty good...
-    #maybe I will create a function that generates the ISBN of a book based on title
     list_tuples_commknow_isbn = []
 
     for work in isbn_list:
@@ -168,20 +167,7 @@ def get_LT_book_info(apikey, isbn_list):
             # print list_tuples_commknow_isbn
             # import pdb; pdb.set_trace()
     return list_tuples_commknow_isbn
-    # print "got the cknowledge"
-
-    # store_text_common_knowledge(work_common_knowledge_utf8, isbn)
-    # print "it's been stored"
-
-    # parse_common_knowledge_for_book_info(isbn)   
-    # print "it's been parsed"
-    # print work_common_knowledge_utf8
-    # import pdb; pdb.set_trace()
-    #save the common knowledge text to a file
-    # store_text_common_knowledge(work_common_knowledge_utf8, isbn)
-
-    # return work_common_knowledge_unicode
-
+    
 
 def create_location_instance(list_tuples_commknow_isbn):
     # file_to_parse = open(file_name).read()
@@ -190,12 +176,6 @@ def create_location_instance(list_tuples_commknow_isbn):
         root = ET.fromstring(item[0])
         ns={'lt':'http://www.librarything.com/'}
         
-        #table attributes
-        # for child in root:
-            # book_title = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:title", ns).text
-            # book_copyright = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='originalpublicationdate']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text
-            # book_avg_rating = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:rating", ns).text
-        
         # import pdb; pdb.set_trace()
         #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
         for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
@@ -203,7 +183,6 @@ def create_location_instance(list_tuples_commknow_isbn):
             # print place
             place_list = place.split(', ')
             print place_list
-            # import pdb; pdb.set_trace()
             # import pdb; pdb.set_trace()
             #only pulling out places that have a city and state listed
             if len(place_list) == 2:
@@ -224,35 +203,20 @@ def create_location_instance(list_tuples_commknow_isbn):
             # import pdb; pdb.set_trace()
             book.locations.append(location)
 
-        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).get("lt:field[@name='firstwords']"):
-            first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
-            print first_words
-            book.first_words = first_words
+        if root.find("lt:ltml", ns):
+            if root.find("lt:ltml", ns).find("lt:item", ns):
+                if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns):
+                    if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns):
+                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns):
+                            first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
+                            print first_words
+                            book.first_words = first_words
+                            db.session.commit()
         
             
             
 
-        # author = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:author", ns).text.split()
-        # author_firstname, author_lastname = author[0], author[1]
-        # summary = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='description']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.rstrip("]>").lstrip("<![CDATA[")
-
-        # book = Book(isbn = isbn,
-        #         book_title = book_title,
-        #         book_copyright = book_copyright,
-        #         book_avg_rating = book_avg_rating,
-        #         summary = summary
-        #         )
-        # db.session.add(book)
-
-        # author = Author(author_firstname = author_firstname,
-        #                 author_lastname = author_lastname
-        #                 )
-        # #magic stuff --- something about an isntance of a book referencing the authors table in model.py and appending location/author to list.....
-        # book.authors.append(author)
-        # book.locations.append(location)
-
-        # db.session.commit()
-
+       
 # def store_text_common_knowledge(work_common_knowledge_utf8, isbn):
     # """This function runs through the get_LT_book_info(),
     # takes the common knowledge of a work and saves it to a text file."""
@@ -274,10 +238,4 @@ if __name__ == "__main__":
 
     script, query = argv
     book_database_seeding(google_api_key, apikey, query)
-    # google_book_search(google_api_key, apikey, query)
-
-    # get_LT_book_info(apikey, isbn)
-
-    # store_text_common_knowledge(work_common_knowledge_utf8, isbn)
-
-    # parse_common_knowledge_for_book_info(isbn)   
+    
