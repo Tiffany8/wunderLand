@@ -17,20 +17,25 @@ authors_ref = db.Table('authors_ref',
     db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
 
 locations_ref = db.Table('locations_ref', 
-	db.Column('locations_code', db.String(100), db.ForeignKey('locations.location_code')),
+	db.Column('locations_id', db.Integer, db.ForeignKey('locations.location_id')),
 	db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
 
+books_ref = db.Table('books_ref',
+    db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')),
+    db.Column('category_id', db.String(50), db.ForeignKey('categories.category_id')))
 
 
 class Book(db.Model):
 
     __tablename__ = "books"
     isbn = db.Column(db.Integer, primary_key=True)
-    book_title = db.Column(db.String(70), nullable=False)
-    book_copyright =  db.Column(db.String(12), nullable=True)
-    summary = db.Column(db.String(300), nullable=True)
-    book_avg_rating = db.Column(db.Integer, nullable=True)
-
+    title = db.Column(db.String(70), nullable=False)
+    description = db.Column(db.String(500), nullable=True)
+    thumbnail_url = db.Column(db.String(150), nullable=True)
+    publication_date = db.Column(db.Integer, nullable=True)
+    preview_link = db.Column(db.String(150), nullable=True)
+    page_count = db.Column(db.Integer, nullable=True)
+    first_words = db.Column(db.Integer, nullable=True)
     authors = db.relationship('Author', secondary=authors_ref,
         backref=db.backref('books', lazy='dynamic'))
 
@@ -40,33 +45,45 @@ class Book(db.Model):
     def __repr__(self):
         """Provide helpful representation when printed."""
 
-        return "<Book isbn=%d book_title=%s author_id=%d>" % (self.isbn, self.book_title, self.author_id)
+        return "<Book isbn=%s title=%s>" % (self.isbn, self.title)
 
 class Author(db.Model):
 
 	__tablename__ = "authors"
 	author_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-	author_firstname = db.Column(db.String(50), nullable=False)
-	author_lastname = db.Column(db.String(50), nullable=False)
+	author_name = db.Column(db.String(100), nullable=False)
+	
 	
 	def __repr__(self):
 		"""Provide helpful representation when printed."""
-		return "<Author author_id=%d author=%s %s isbn=%d>" % (self.author_id, self.author_firstname, self.author_lastname, self.isbn)
+		return "<Author author_id=%d author=%s>" % (self.author_id, self.author_name)
 
 
 class Location(db.Model):
 
 	__tablename__ = "locations"
-	location_code = db.Column(db.String(100), primary_key=True)
-	location_city = db.Column(db.String(100), nullable=True)
-	location_state = db.Column(db.String(100), nullable=True)
-	location_country = db.Column(db.String(100), nullable=True)
+	location_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+	city_county = db.Column(db.String(100), nullable=True)
+	state = db.Column(db.String(100), nullable=True)
+	country = db.Column(db.String(100), nullable=True)
 
 	def __repr__(self):
 
-		return "<Location location=%s>" % (self.location_code)
+		return "<Location location=%s, %s, %s>" % (self.city_county, self.state, self.country)
 
 
+class Category(db.Model):
+
+    __tablename__ = "categories"
+    category_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    category = db.Column(db.String(40), nullable=True)
+
+    books = db.relationship("Book", secondary=books_ref,
+        backref=db.backref('categories', lazy='dynamic'))
+
+    def __repr__(self):
+
+        return "<Category id: %s category: %s>" % (self.category_id, self.category)
 
 # End 
 ##############################################################################
