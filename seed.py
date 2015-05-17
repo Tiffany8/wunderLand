@@ -58,7 +58,7 @@ def google_book_search(query):
                                     orderBy='relevance', 
                                     printType='books', 
                                     q=query, 
-                                    startIndex=0,
+                                    startIndex=6,
                                     maxResults=5,
                                     fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,authors,mainCategory))")
 
@@ -85,47 +85,51 @@ def create_book_author_instance(response):
             isbn = book_dict.get('volumeInfo', {}).get("industryIdentifiers")[0].get('identifier')
             print isbn
             #Since the value could be "None", this "if" checks for an actual isbn value
-            if isbn:
-                title = book_dict.get('volumeInfo', {}).get('title')
-                print "The title: ", title
-                bookauthors = book_dict.get('volumeInfo', {}).get('authors')
-                print "Authors: ", bookauthors
-                if book_dict.get('volumeInfo').get('categories'):
-                    categories = book_dict.get('volumeInfo').get('categories')
-                else:
-                    categories = None
-                print "Categories: ", categories
-                description = book_dict.get('volumeInfo', {}).get('description')
-                print "Description: ", description
-                thumbnail = book_dict.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
-                print "Thumbnail link: ", thumbnail
-                publishedDate = book_dict.get('volumeInfo', {}).get('publishedDate')
-                print "Publication Date: ", publishedDate
-                previewLink = book_dict.get('volumeInfo', {}).get("previewLink") 
-                print "PreviewLink: ", previewLink
-                pageCount = book_dict.get('volumeInfo', {}).get('pageCount')
-                
-                book = Book(isbn = isbn,
-                            title = title,
-                            thumbnail_url = thumbnail,
-                            description = description,
-                            publication_date = publishedDate,
-                            preview_link = previewLink,
-                            page_count = pageCount)
-                isbn_list.append(book.isbn)
-                print "an instance of a book created"
-                db.session.add(book)
+            try:
+                if str(isbn):
+                    title = book_dict.get('volumeInfo', {}).get('title')
+                    print "The title: ", title
+                    bookauthors = book_dict.get('volumeInfo', {}).get('authors')
+                    print "Authors: ", bookauthors
+                    if book_dict.get('volumeInfo').get('categories'):
+                        categories = book_dict.get('volumeInfo').get('categories')
+                    else:
+                        categories = None
+                    print "Categories: ", categories
+                    description = book_dict.get('volumeInfo', {}).get('description')
+                    print "Description: ", description
+                    thumbnail = book_dict.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
+                    print "Thumbnail link: ", thumbnail
+                    publishedDate = book_dict.get('volumeInfo', {}).get('publishedDate')
+                    print "Publication Date: ", publishedDate
+                    previewLink = book_dict.get('volumeInfo', {}).get("previewLink") 
+                    print "PreviewLink: ", previewLink
+                    pageCount = book_dict.get('volumeInfo', {}).get('pageCount')
+                    
+                    book = Book(isbn = isbn,
+                                title = title,
+                                thumbnail_url = thumbnail,
+                                description = description,
+                                publication_date = publishedDate,
+                                preview_link = previewLink,
+                                page_count = pageCount)
+                    isbn_list.append(book.isbn)
+                    print "an instance of a book created"
+                    db.session.add(book)
 
-                for name in bookauthors:
-                    author = Author(author_name = name)
-                    db.session.add(author)
-                    book.authors.append(author)
-                print "instances of author created"
-
-                for item in categories:
-                    category_instance = Category(category = item)
-                    db.session.add(category_instance)
-                    category_instance.books.append(book)
+                    if bookauthors:
+                        for name in bookauthors:
+                            author = Author(author_name = name)
+                            db.session.add(author)
+                            book.authors.append(author)
+                    print "instances of author created"
+                    if categories:
+                        for item in categories:
+                            category_instance = Category(category = item)
+                            db.session.add(category_instance)
+                            category_instance.books.append(book)
+            except ValueError:
+                print "ValueError. Skipping ", isbn
                 
     
         # magic stuff --- something about an isntance of a book referencing the authors 
@@ -170,14 +174,16 @@ def get_LT_book_info(apikey, isbn_list):
     
 
 def create_location_instance(list_tuples_commknow_isbn):
+
     # file_to_parse = open(file_name).read()
     # tree = ET.parse(file_name)
     for item in list_tuples_commknow_isbn:
+        # try:
         root = ET.fromstring(item[0])
         ns={'lt':'http://www.librarything.com/'}
-        
-        # import pdb; pdb.set_trace()
-        #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
+    
+    # import pdb; pdb.set_trace()
+    #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
         for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
             place = child.text
             # print place
@@ -202,16 +208,19 @@ def create_location_instance(list_tuples_commknow_isbn):
             book = Book.query.get(item[1])
             # import pdb; pdb.set_trace()
             book.locations.append(location)
-
-        if root.find("lt:ltml", ns):
-            if root.find("lt:ltml", ns).find("lt:item", ns):
-                if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns):
-                    if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns):
-                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns):
+        #WARNING/FYI: FutureWarning: The behavior of this method will change in 
+        #future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+        if root.find("lt:ltml", ns) is not None:
+            if root.find("lt:ltml", ns).find("lt:item", ns) is not None:
+                if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns) is not None:
+                    if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns) is not None:
+                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                             first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
                             print first_words
                             book.first_words = first_words
-                            db.session.commit()
+                            # db.session.commit()
+        # except:
+        #     print "Skipping ", item[1]
         
             
             
