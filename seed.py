@@ -25,6 +25,8 @@ from apiclient.discovery import build
 # to make sure these environmental variables are set.
 
 
+MAX_RESULTS = 1
+
 #remember to run source secrets.sh in order to access this environmental variable
 # API provided from OS environment dictionary
 apikey = os.environ['LIBRARYTHING_DEVELOP_KEY']
@@ -64,7 +66,7 @@ def google_book_search(query):
                                     printType='books', 
                                     q=query, 
                                     startIndex=0,
-                                    maxResults=40,
+                                    maxResults=MAX_RESULTS,
                                     fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,authors,mainCategory))")
 
     # # The execute() function on the HttpRequest object actually calls the API.
@@ -90,59 +92,87 @@ def create_book_author_instance(response):
             isbn = book_dict.get('volumeInfo', {}).get("industryIdentifiers")[0].get('identifier')
             print isbn
             #Since the value could be "None", this "if" checks for an actual isbn value
-            try:
+           
                 #TODO -- I don't really want this because some isbns have letters at the end
                 #but don't want the non-isbn numbers "UCSC:..." or "STANFORD:..."
-                if str(isbn):
-                    title = book_dict.get('volumeInfo', {}).get('title')
-                    print "The title: ", title
-                    bookauthors = book_dict.get('volumeInfo', {}).get('authors')
-                    print "Authors: ", bookauthors
-                    if book_dict.get('volumeInfo').get('categories'):
-                        categories = book_dict.get('volumeInfo').get('categories')
-                    else:
-                        categories = None
-                    print "Categories: ", categories
-                    description = book_dict.get('volumeInfo', {}).get('description')
-                    print "Description: ", description
-                    thumbnail = book_dict.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
-                    print "Thumbnail link: ", thumbnail
-                    publishedDate = book_dict.get('volumeInfo', {}).get('publishedDate')
-                    print "Publication Date: ", publishedDate
-                    previewLink = book_dict.get('volumeInfo', {}).get("previewLink") 
-                    print "PreviewLink: ", previewLink
-                    pageCount = book_dict.get('volumeInfo', {}).get('pageCount')
-                    
-                    book = Book(isbn = isbn,
-                                title = title,
-                                thumbnail_url = thumbnail,
-                                description = description,
-                                publication_date = publishedDate,
-                                preview_link = previewLink,
-                                page_count = pageCount)
-                    try:
-                        db.session.add(book)
-                        isbn_list.append(book.isbn)
-                        print "an instance of a book created"
-                        if bookauthors:
-                            for name in bookauthors:
-                                author = Author(author_name = name)
-                                db.session.add(author)
-                                book.authors.append(author)
+                #regular expressions -- or make sure doesn't contain a colon...
+            if isbn:
+                title = book_dict.get('volumeInfo', {}).get('title')
+                print "The title: ", title
+                bookauthors = book_dict.get('volumeInfo', {}).get('authors')
+                print "Authors: ", bookauthors
+                if book_dict.get('volumeInfo').get('categories'):
+                    categories = book_dict.get('volumeInfo').get('categories')
+                else:
+                    categories = None
+                print "Categories: ", categories
+                description = book_dict.get('volumeInfo', {}).get('description')
+                print "Description: ", description
+                thumbnail = book_dict.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
+                print "Thumbnail link: ", thumbnail
+                publishedDate = book_dict.get('volumeInfo', {}).get('publishedDate')
+                print "Publication Date: ", publishedDate
+                previewLink = book_dict.get('volumeInfo', {}).get("previewLink") 
+                print "PreviewLink: ", previewLink
+                pageCount = book_dict.get('volumeInfo', {}).get('pageCount')
+                
+                book = Book(isbn = isbn,
+                            title = title,
+                            thumbnail_url = thumbnail,
+                            description = description,
+                            publication_date = publishedDate,
+                            preview_link = previewLink,
+                            page_count = pageCount)
+
+                if not Book.query.get(book.isbn):
+                    db.session.add(book)
+                    isbn_list.append(book.isbn)
+                    print "an instance of a book created"
+                    if bookauthors:
+                        for name in bookauthors:
+                            author = Author(author_name = name)
+                            db.session.add(author)
+                            book.authors.append(author)
                         print "instances of author created"
-                        if categories:
-                            for item in categories:
-                                category_instance = Category(category = item)
+                    if categories:
+                        for item in categories:
+                            category_instance = Category(category = item)
+                            if not Category.query.filter_by(category = item).all():
                                 db.session.add(category_instance)
-                                category_instance.books.append(book)
-                        db.session.commit()
+                            category_instance.books.append(book)
+                    db.session.commit()
+                else:
+                    print "This book ", book.title, "isbn: ", book.isbn, " already exist in the database!"
+    print isbn_list
+    print "book instance creation complete"
 
-                    except exc.SQLAlchemyError:
-                        db.session.rollback()
-                        print "This book, ", book.isbn, "already exist in the database!"
+    return isbn_list 
 
-            except ValueError:
-                print "ValueError. Skipping ", isbn
+            #         try:
+            #             db.session.add(book)
+            #             isbn_list.append(book.isbn)
+            #             print "an instance of a book created"
+            #             if bookauthors:
+            #                 for name in bookauthors:
+            #                     author = Author(author_name = name)
+            #                     db.session.add(author)
+            #                     book.authors.append(author)
+            #             print "instances of author created"
+            #             if categories:
+            #                 for item in categories:
+            #                     category_instance = Category(category = item)
+            #                     if not Category.query.filter_by(category = item).one():
+            #                     #if in not in data (check)
+            #                         db.session.add(category_instance)
+            #                     category_instance.books.append(book)
+            #             db.session.commit()
+
+            #         except exc.SQLAlchemyError:
+            #             db.session.rollback()
+            #             print "This book, ", book.isbn, "already exist in the database!"
+
+            # except ValueError:
+            #     print "ValueError. Skipping ", isbn
                 
     
         # magic stuff --- something about an isntance of a book referencing the authors 
@@ -153,11 +183,8 @@ def create_book_author_instance(response):
         # in model.py and appending location/author to list.....
         # book.authors.append(author)
         # book.locations.append(location)
-    
-    print isbn_list
-    print "book instance creation complete"
-    # import pdb; pdb.set_trace()
-    return isbn_list                   
+
+                     
                 
 
     
@@ -191,8 +218,12 @@ def create_location_instance(list_tuples_commknow_isbn):
     # file_to_parse = open(file_name).read()
     # tree = ET.parse(file_name)
     for item in list_tuples_commknow_isbn:
-        # try:
-        root = ET.fromstring(item[0])
+        commonknowledge = item[0]
+        isbn = item[1]
+        book = Book.query.get(isbn)
+        print "book:", book
+        print isbn
+        root = ET.fromstring(commonknowledge)
         ns={'lt':'http://www.librarything.com/'}
     
     # import pdb; pdb.set_trace()
@@ -207,29 +238,24 @@ def create_location_instance(list_tuples_commknow_isbn):
             #TO DO -- how can I make this code more efficient?
             #if I put the db.session.add() outside of the if loop, then there will be
             #instances where location does not exist and I will get an error
+            
             if len(place_list) == 2:
                 location = Location(city_county = None,
                                     state = place_list[0],
                                     country = place_list[1])
                 db.session.add(location)
-                book = Book.query.get(item[1])
-                # import pdb; pdb.set_trace()
                 book.locations.append(location)
             elif len(place_list) == 3:
                 location = Location(city_county = place_list[0],
                                     state = place_list[1],
                                     country = place_list[2])
                 db.session.add(location)
-                book = Book.query.get(item[1])
-                # import pdb; pdb.set_trace()
                 book.locations.append(location)
             elif len(place_list) == 4:
-                location = Location(city_county = place_list[0] + ","+  place_list[1],
+                location = Location(city_county = place_list[0] + ", "+  place_list[1],
                                     state = place_list[2],
                                     country = place_list[3])
                 db.session.add(location)
-                book = Book.query.get(item[1])
-                # import pdb; pdb.set_trace()
                 book.locations.append(location)
 
             # db.session.add(location)
@@ -245,7 +271,6 @@ def create_location_instance(list_tuples_commknow_isbn):
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                             first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
                             print first_words
-                            book = Book.query.get(item[1])
                             book.first_words = first_words
                             # db.session.commit()
         # except:
@@ -276,4 +301,3 @@ if __name__ == "__main__":
 
     script, query = argv
     book_database_seeding(google_api_key, apikey, query)
-    

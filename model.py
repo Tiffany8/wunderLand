@@ -15,9 +15,9 @@ db = SQLAlchemy()
 authors_ref = db.Table('authors_ref',
     db.Column('author_id', db.Integer, db.ForeignKey('authors.author_id')),
     db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
-
+#TO DO -- change the location id to si
 locations_ref = db.Table('locations_ref', 
-	db.Column('locations_id', db.Integer, db.ForeignKey('locations.location_id')),
+	db.Column('location_id', db.Integer, db.ForeignKey('locations.location_id')),
 	db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
 
 books_ref = db.Table('books_ref',
@@ -76,7 +76,7 @@ class Category(db.Model):
 
     __tablename__ = "categories"
     category_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    category = db.Column(db.String(40), nullable=True)
+    category = db.Column(db.String(40), nullable=True, unique=True)
 
     books = db.relationship("Book", secondary=books_ref,
         backref=db.backref('categories', lazy='dynamic'))
