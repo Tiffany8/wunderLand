@@ -63,8 +63,8 @@ def google_book_search(query):
                                     orderBy='relevance', 
                                     printType='books', 
                                     q=query, 
-                                    startIndex=11,
-                                    maxResults=5,
+                                    startIndex=0,
+                                    maxResults=40,
                                     fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,authors,mainCategory))")
 
     # # The execute() function on the HttpRequest object actually calls the API.
@@ -91,6 +91,8 @@ def create_book_author_instance(response):
             print isbn
             #Since the value could be "None", this "if" checks for an actual isbn value
             try:
+                #TODO -- I don't really want this because some isbns have letters at the end
+                #but don't want the non-isbn numbers "UCSC:..." or "STANFORD:..."
                 if str(isbn):
                     title = book_dict.get('volumeInfo', {}).get('title')
                     print "The title: ", title
@@ -185,7 +187,7 @@ def get_LT_book_info(apikey, isbn_list):
     
 
 def create_location_instance(list_tuples_commknow_isbn):
-
+    #TO DO -- still get parsing errors -- try search "new york times bestselling 2014"
     # file_to_parse = open(file_name).read()
     # tree = ET.parse(file_name)
     for item in list_tuples_commknow_isbn:
@@ -202,23 +204,38 @@ def create_location_instance(list_tuples_commknow_isbn):
             print place_list
             # import pdb; pdb.set_trace()
             #only pulling out places that have a city and state listed
+            #TO DO -- how can I make this code more efficient?
+            #if I put the db.session.add() outside of the if loop, then there will be
+            #instances where location does not exist and I will get an error
             if len(place_list) == 2:
                 location = Location(city_county = None,
                                     state = place_list[0],
                                     country = place_list[1])
+                db.session.add(location)
+                book = Book.query.get(item[1])
+                # import pdb; pdb.set_trace()
+                book.locations.append(location)
             elif len(place_list) == 3:
                 location = Location(city_county = place_list[0],
                                     state = place_list[1],
                                     country = place_list[2])
+                db.session.add(location)
+                book = Book.query.get(item[1])
+                # import pdb; pdb.set_trace()
+                book.locations.append(location)
             elif len(place_list) == 4:
                 location = Location(city_county = place_list[0] + ","+  place_list[1],
                                     state = place_list[2],
                                     country = place_list[3])
+                db.session.add(location)
+                book = Book.query.get(item[1])
+                # import pdb; pdb.set_trace()
+                book.locations.append(location)
 
-            db.session.add(location)
-            book = Book.query.get(item[1])
-            # import pdb; pdb.set_trace()
-            book.locations.append(location)
+            # db.session.add(location)
+            # book = Book.query.get(item[1])
+            # # import pdb; pdb.set_trace()
+            # book.locations.append(location)
         #WARNING/FYI: FutureWarning: The behavior of this method will change in 
         #future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
         if root.find("lt:ltml", ns) is not None:
@@ -228,6 +245,7 @@ def create_location_instance(list_tuples_commknow_isbn):
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                             first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
                             print first_words
+                            book = Book.query.get(item[1])
                             book.first_words = first_words
                             # db.session.commit()
         # except:
