@@ -4,7 +4,7 @@ import os #allows access to environmental variables
 
 from bs4 import BeautifulSoup, SoupStrainer #beautifulsoup library parses html/xml documents
 
-from model import Book, Author, Location, Category, connect_to_db, db
+from model import Book, Author, Location, Category, Quote, Event, Character, connect_to_db, db
 
 from sys import argv
 
@@ -286,18 +286,26 @@ def create_location_instance(list_tuples_commknow_isbn):
                     if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns) is not None:
                         
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='events']", ns) is not None:
-                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='events']/lt:versionList/lt:version/lt:factList/*",ns):
+                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='events']/lt:versionList/lt:version/lt:factList/",ns):
                                 event = child.text
                                 event_instance = Event(event=event)
-                                db.session.add(important_event)
-                                events.books.append(event_instance)
+                                if not Event.query.filter_by(event=event).first():
+                                    db.session.add(event_instance)
+                                else:
+                                    print "event already in database!"
+                                
+                                event_instance.books.append(book)
 
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='characternames']", ns) is not None:
-                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/*",ns):
-                                characters = child.text
-                                character_instance = Event(event=event)
-                                db.session.add(character_instance)
-                                characters.books.append(character_instance)
+                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/",ns):
+                                character = child.text
+                                print character
+                                character_instance = Character(character=character)
+                                if not Character.query.filter_by(character=character).first():
+                                    db.session.add(character_instance)
+                                else:
+                                    print "character name already in database!"
+                                character_instance.books.append(book)
 
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                             first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")

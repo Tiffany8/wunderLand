@@ -49,6 +49,7 @@ class Book(db.Model):
     page_count = db.Column(db.Integer, nullable=True)
     ratings_count = db.Column(db.Integer, nullable=True)
     average_ratings = db.Column(db.Float, nullable=True)
+    main_category = db.Column(db.String(50), nullable=True)
 
     first_words = db.Column(db.String(500), nullable=True)
 
@@ -132,7 +133,7 @@ class Character(db.Model):
 
     __tablename__ = "characters"
     character_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    character = db.Column(db.String(100), nullalbe=True, unique=True)
+    character = db.Column(db.String(100), nullable=True)
 
     def __repr__(self):
 
