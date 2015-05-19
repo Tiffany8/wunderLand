@@ -16,6 +16,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 from sqlalchemy import exc
 
+from datetime import datetime
+
 #from Google Books
 import pprint
 import sys
@@ -67,7 +69,8 @@ def google_book_search(query):
                                     q=query, 
                                     startIndex=0,
                                     maxResults=MAX_RESULTS,
-                                    fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,authors,mainCategory))")
+                                    fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,subtitle,authors,ratingsCount,mainCategory,averageRating))")
+
 
     # # The execute() function on the HttpRequest object actually calls the API.
     # # It returns a Python object built from the JSON response. You can print this
@@ -99,6 +102,8 @@ def create_book_author_instance(response):
             if isbn:
                 title = book_dict.get('volumeInfo', {}).get('title')
                 print "The title: ", title
+                subtitle = book_dict.get('volumeInfo', {}).get('subtitle')
+                print "subtitle: ", subtitle
                 bookauthors = book_dict.get('volumeInfo', {}).get('authors')
                 print "Authors: ", bookauthors
                 if book_dict.get('volumeInfo').get('categories'):
@@ -106,23 +111,34 @@ def create_book_author_instance(response):
                 else:
                     categories = None
                 print "Categories: ", categories
+                mainCategory = book_dict.get('volumeInfo').get('mainCategory')
+                print "Main Category", mainCategory
                 description = book_dict.get('volumeInfo', {}).get('description')
                 print "Description: ", description
                 thumbnail = book_dict.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
                 print "Thumbnail link: ", thumbnail
-                publishedDate = book_dict.get('volumeInfo', {}).get('publishedDate')
+
+                publishedDate_unformated = book_dict.get('volumeInfo', {}).get('publishedDate')
+                publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m-%d")
                 print "Publication Date: ", publishedDate
+
                 previewLink = book_dict.get('volumeInfo', {}).get("previewLink") 
                 print "PreviewLink: ", previewLink
                 pageCount = book_dict.get('volumeInfo', {}).get('pageCount')
-                
+                ratingsCount = book_dict.get('volumeInfo', {}).get('ratingsCount')
+                averageRatings = book_dict.get('volumeInfo', {}).get('averageRating')
+
                 book = Book(isbn = isbn,
                             title = title,
+                            subtitle = subtitle,
+                            main_category = mainCategory,
                             thumbnail_url = thumbnail,
                             description = description,
                             publication_date = publishedDate,
                             preview_link = previewLink,
-                            page_count = pageCount)
+                            page_count = pageCount,
+                            ratings_count = ratingsCount,
+                            average_ratings = averageRatings)
 
                 if not Book.query.get(book.isbn):
                     db.session.add(book)
@@ -140,7 +156,7 @@ def create_book_author_instance(response):
                             if not Category.query.filter_by(category = item).all():
                                 db.session.add(category_instance)
                             category_instance.books.append(book)
-                    db.session.commit()
+                    # db.session.commit()
                 else:
                     print "This book ", book.title, "isbn: ", book.isbn, " already exist in the database!"
     print isbn_list
@@ -225,7 +241,7 @@ def create_location_instance(list_tuples_commknow_isbn):
         print isbn
         root = ET.fromstring(commonknowledge)
         ns={'lt':'http://www.librarything.com/'}
-    
+        # import pdb; pdb.set_trace()
     # import pdb; pdb.set_trace()
     #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
         for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
@@ -268,6 +284,21 @@ def create_location_instance(list_tuples_commknow_isbn):
             if root.find("lt:ltml", ns).find("lt:item", ns) is not None:
                 if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns) is not None:
                     if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns) is not None:
+                        
+                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='events']", ns) is not None:
+                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='events']/lt:versionList/lt:version/lt:factList/*",ns):
+                                event = child.text
+                                event_instance = Event(event=event)
+                                db.session.add(important_event)
+                                events.books.append(event_instance)
+
+                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='characternames']", ns) is not None:
+                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/*",ns):
+                                characters = child.text
+                                character_instance = Event(event=event)
+                                db.session.add(character_instance)
+                                characters.books.append(character_instance)
+
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                             first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
                             print first_words

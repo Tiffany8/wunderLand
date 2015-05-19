@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 # This is the connection to the SQLite database; we're getting this through
 # the Flask-SQLAlchemy helper library. On this, we can find the `session`
 # object, where we do most of our interactions (like committing, etc.)
-
+from datetime import datetime
 db = SQLAlchemy()
 
 ##############################################################################
@@ -12,35 +12,52 @@ db = SQLAlchemy()
 
 #these are association tables created for many-to-many tables (FlaskSQLAlchemy)
 #books is the "lazy" table
-authors_ref = db.Table('authors_ref',
+authors_books = db.Table('authors_books',
     db.Column('author_id', db.Integer, db.ForeignKey('authors.author_id')),
-    db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
+    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 #TO DO -- change the location id to si
-locations_ref = db.Table('locations_ref', 
+locations_books = db.Table('locations_books', 
 	db.Column('location_id', db.Integer, db.ForeignKey('locations.location_id')),
-	db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')))
+	db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 
-books_ref = db.Table('books_ref',
-    db.Column('isbn', db.Integer, db.ForeignKey('books.isbn')),
-    db.Column('category_id', db.String(50), db.ForeignKey('categories.category_id')))
+books_cats = db.Table('books_cats',
+    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
+    db.Column('category_id', db.Integer, db.ForeignKey('categories.category_id')))
 
+books_events = db.Table('books_events', 
+    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
+    db.Column('events_id', db.Integer, db.ForeignKey('events.event_id')))
+
+books_quotes = db.Table("books_quotes", 
+    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
+    db.Column('quote_id', db.Integer, db.ForeignKey('quotes.quote_id')))
+
+char_books = db.Table("char_books", 
+    db.Column('character_id', db.String(100), db.ForeignKey('characters.character_id')),
+    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 
 class Book(db.Model):
 
     __tablename__ = "books"
-    isbn = db.Column(db.Integer, primary_key=True)
+    isbn = db.Column(db.String(30), primary_key=True)
     title = db.Column(db.String(70), nullable=False)
+    subtitle = db.Column(db.String(70), nullable=True)
     description = db.Column(db.String(500), nullable=True)
     thumbnail_url = db.Column(db.String(150), nullable=True)
-    publication_date = db.Column(db.Integer, nullable=True)
+    publication_date = db.Column(db.DateTime(20), nullable=True)
     preview_link = db.Column(db.String(150), nullable=True)
     page_count = db.Column(db.Integer, nullable=True)
-    first_words = db.Column(db.Integer, nullable=True)
-    authors = db.relationship('Author', secondary=authors_ref,
-        backref=db.backref('books', lazy='dynamic'))
+    ratings_count = db.Column(db.Integer, nullable=True)
+    average_ratings = db.Column(db.Float, nullable=True)
 
-    locations = db.relationship('Location', secondary=locations_ref, 
+    first_words = db.Column(db.String(500), nullable=True)
+
+    authors = db.relationship('Author', secondary=authors_books,
+        backref=db.backref('books', lazy='dynamic'))
+    locations = db.relationship('Location', secondary=locations_books, 
     	backref=db.backref('books', lazy='dynamic'))
+    characters = db.relationship('Character', secondary=char_books,
+        backref=db.backref('books', lazy='dynamic'))
 
     def __repr__(self):
         """Provide helpful representation when printed."""
@@ -78,12 +95,48 @@ class Category(db.Model):
     category_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     category = db.Column(db.String(40), nullable=True, unique=True)
 
-    books = db.relationship("Book", secondary=books_ref,
+    books = db.relationship("Book", secondary=books_cats,
         backref=db.backref('categories', lazy='dynamic'))
 
     def __repr__(self):
 
-        return "<Category id: %s category: %s>" % (self.category_id, self.category)
+        return "<Category id: %d category: %s>" % (self.category_id, self.category)
+
+class Event(db.Model):
+
+    __tablename__ = "events"
+    event_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    event = db.Column(db.String(100), nullable=False, unique=True)
+
+    books = db.relationship("Book", secondary=books_events,
+        backref=db.backref('events', lazy='dynamic'))
+
+    def __repr__(self):
+
+        return "<Important event id= %d, event= %s>" % (self.event_id, self.event)
+
+class Quote(db.Model):
+
+    __tablename__ = "quotes"
+    quote_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    quote = db.Column(db.String(500), nullable=True)
+
+    books = db.relationship("Book", secondary=books_quotes, 
+        backref=db.backref('quotes', lazy='dynamic'))
+
+    def __repr__(self):
+
+        return "<QUOTE ID: %d QUOTE: %s, BOOK: %s>" % (self.quote_id, self.quote, self.books.title)
+
+class Character(db.Model):
+
+    __tablename__ = "characters"
+    character_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    character = db.Column(db.String(100), nullalbe=True, unique=True)
+
+    def __repr__(self):
+
+        return "<CHARACTER ID: %d CHARACTER: %s>" % (self.character_id, self.character)
 
 # End 
 ##############################################################################
