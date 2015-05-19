@@ -297,15 +297,22 @@ def create_location_instance(list_tuples_commknow_isbn):
                                 event_instance.books.append(book)
 
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='characternames']", ns) is not None:
-                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/",ns):
+                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/*",ns):
                                 character = child.text
-                                print character
                                 character_instance = Character(character=character)
                                 if not Character.query.filter_by(character=character).first():
                                     db.session.add(character_instance)
                                 else:
                                     print "character name already in database!"
                                 character_instance.books.append(book)
+
+                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='quotations']", ns) is not None:
+                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='quotations']/lt:versionList/lt:version/lt:factList/*",ns):
+                                quotation = child.text.lstrip("<![CDATA[").rstrip("]]>")
+                                print quotation
+                                quote_instance = Quote(quote=quotation)
+                                db.session.add(quote_instance)
+                                quote_instance.books.append(book)
 
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                             first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")

@@ -26,7 +26,7 @@ books_cats = db.Table('books_cats',
 
 books_events = db.Table('books_events', 
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
-    db.Column('events_id', db.Integer, db.ForeignKey('events.event_id')))
+    db.Column('event_id', db.Integer, db.ForeignKey('events.event_id')))
 
 books_quotes = db.Table("books_quotes", 
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
@@ -126,8 +126,8 @@ class Quote(db.Model):
         backref=db.backref('quotes', lazy='dynamic'))
 
     def __repr__(self):
-
-        return "<QUOTE ID: %d QUOTE: %s, BOOK: %s>" % (self.quote_id, self.quote, self.books.title)
+        #how do I reference the book for this?
+        return "<QUOTE ID: %d QUOTE: %s>" % (self.quote_id, self.quote)
 
 class Character(db.Model):
 
