@@ -4,7 +4,7 @@ import os #allows access to environmental variables
 
 from bs4 import BeautifulSoup, SoupStrainer #beautifulsoup library parses html/xml documents
 
-from model import Book, Author, Location, Category, Quote, Event, Character, connect_to_db, db
+from model import Book, Author, Location, Category, Quote, Event, Character, Award, connect_to_db, db
 
 from sys import argv
 
@@ -23,11 +23,15 @@ import pprint
 import sys
 from apiclient.discovery import build
 
+import geocoder
+
 # Note: you must run `source secrets.sh` before running this file
 # to make sure these environmental variables are set.
 
-
-MAX_RESULTS = 1
+#Maximum number of results to return. (integer, 0-40)
+MAX_RESULTS = 3
+#Index of the first result to return (starts at 0) (integer, 0+)
+START_INDEX = 0
 
 #remember to run source secrets.sh in order to access this environmental variable
 # API provided from OS environment dictionary
@@ -41,6 +45,7 @@ def book_database_seeding(google_api_key, apikey, query):
     isbn_list = create_book_author_instance(response)
     list_tuples_commknow_isbn = get_LT_book_info(apikey, isbn_list)
     create_location_instance(list_tuples_commknow_isbn)
+    LongLat()
     db.session.commit()
 
 
@@ -67,7 +72,7 @@ def google_book_search(query):
                                     orderBy='relevance', 
                                     printType='books', 
                                     q=query, 
-                                    startIndex=0,
+                                    startIndex=START_INDEX,
                                     maxResults=MAX_RESULTS,
                                     fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,subtitle,authors,ratingsCount,mainCategory,averageRating))")
 
@@ -119,7 +124,13 @@ def create_book_author_instance(response):
                 print "Thumbnail link: ", thumbnail
 
                 publishedDate_unformated = book_dict.get('volumeInfo', {}).get('publishedDate')
-                publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m-%d")
+                if publishedDate_unformated:
+                    if len(publishedDate_unformated)  > 8:
+                        publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m-%d")
+                    elif len(publishedDate_unformated) < 5:
+                        publishedDate = datetime.strptime(publishedDate_unformated, "%Y")  
+                    else:
+                        publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m")
                 print "Publication Date: ", publishedDate
 
                 previewLink = book_dict.get('volumeInfo', {}).get("previewLink") 
@@ -222,6 +233,11 @@ def get_LT_book_info(apikey, isbn_list):
             
             #unicode turned into utf8 in order to write into a file
             work_common_knowledge_utf8 = work_common_knowledge_unicode.encode('utf-8')
+
+            entities = [('&nbsp;', u'\u00a0'),('&acirc;', u'\u00e2')]
+            for before, after in entities:
+                work_common_knowledge_utf8 = work_common_knowledge_utf8.replace(before, after.encode('utf8'))
+
     
             list_tuples_commknow_isbn.append((work_common_knowledge_utf8, work))
             # print list_tuples_commknow_isbn
@@ -235,6 +251,7 @@ def create_location_instance(list_tuples_commknow_isbn):
     # tree = ET.parse(file_name)
     for item in list_tuples_commknow_isbn:
         commonknowledge = item[0]
+        print commonknowledge
         isbn = item[1]
         book = Book.query.get(isbn)
         print "book:", book
@@ -299,29 +316,73 @@ def create_location_instance(list_tuples_commknow_isbn):
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='characternames']", ns) is not None:
                             for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/*",ns):
                                 character = child.text
-                                character_instance = Character(character=character)
-                                if not Character.query.filter_by(character=character).first():
+                                character_instance = Character(character=character, 
+                                                                isbn=isbn)
+                                if not Character.query.filter_by(character=character).all():
                                     db.session.add(character_instance)
                                 else:
                                     print "character name already in database!"
-                                character_instance.books.append(book)
+                                # character_instance.books.append(book)
 
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='quotations']", ns) is not None:
                             for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='quotations']/lt:versionList/lt:version/lt:factList/*",ns):
                                 quotation = child.text.lstrip("<![CDATA[").rstrip("]]>")
                                 print quotation
-                                quote_instance = Quote(quote=quotation)
+                                quote_instance = Quote(quote=quotation, 
+                                                        isbn=isbn)
                                 db.session.add(quote_instance)
-                                quote_instance.books.append(book)
+                                # quote_instance.books.append(book)
+
+                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='awards']", ns) is not None:
+                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='awards']/lt:versionList/lt:version/lt:factList/*",ns):
+                                award = child.text
+                                print award
+                                award_instance = Award(award=award,
+                                                        isbn=isbn)
+                                db.session.add(award_instance)
+                                # quote_instance.books.append(book)
 
                         if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                             first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
                             print first_words
                             book.first_words = first_words
-                            # db.session.commit()
-        # except:
-        #     print "Skipping ", item[1]
-        
+
+def LongLat():
+    
+    usa_cities_obj_list = Location.query.filter_by(country='USA').filter(Location.city_county.isnot(None)).all()
+    print usa_cities_obj_list
+    # dict_city_state = {l.state: l.city_county for l in usa_cities_obj_list}
+    dict_city_state = {}
+
+    for place in usa_cities_obj_list:
+        location = place.city_county + ", " + place.state
+        print location
+        location_obj = geocoder.google(location)
+        latlong = location_obj.latlng
+        print location,latlong
+        print type(latlong)
+        place.longitude  = latlong[0]
+        place.latitude = latlong[1]
+        db.session.commit()
+
+    # for location_obj in usa_cities_obj_list:
+    #     dict_city_state[location_obj.state] = location_obj.city_county
+    # # print dict_city_state
+    # for state in dict_city_state:
+    #     location = dict_city_state[state] +", " + state
+    #     # print location
+    #     # print "location type", type(location)
+    #     # print location
+    #     location_obj = geocoder.google(location)
+    #     latlong = location_obj.latlng
+    #     print location,latlong
+    #     print type(latlong)
+    #     location_obj.longitude  = latlong[0]
+    #     location_obj.latitude = latlong[1]
+        # db.session.commit()
+        # import pdb; pdb.set_trace()
+
+
             
             
 
@@ -344,6 +405,6 @@ if __name__ == "__main__":
     connect_to_db(app)
 
     db.create_all()
-
+    # LongLat()
     script, query = argv
     book_database_seeding(google_api_key, apikey, query)

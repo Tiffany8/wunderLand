@@ -1,10 +1,12 @@
 
 from flask_sqlalchemy import SQLAlchemy
+# from SQLAlchemy import Numberic
 # This is the connection to the SQLite database; we're getting this through
 # the Flask-SQLAlchemy helper library. On this, we can find the `session`
 # object, where we do most of our interactions (like committing, etc.)
 from datetime import datetime
 db = SQLAlchemy()
+import geocoder
 
 ##############################################################################
 # Part 1: Compose ORM
@@ -17,8 +19,8 @@ authors_books = db.Table('authors_books',
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 #TO DO -- change the location id to si
 locations_books = db.Table('locations_books', 
-	db.Column('location_id', db.Integer, db.ForeignKey('locations.location_id')),
-	db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
+    db.Column('location_id', db.Integer, db.ForeignKey('locations.location_id')),
+    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 
 books_cats = db.Table('books_cats',
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
@@ -28,13 +30,13 @@ books_events = db.Table('books_events',
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
     db.Column('event_id', db.Integer, db.ForeignKey('events.event_id')))
 
-books_quotes = db.Table("books_quotes", 
-    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
-    db.Column('quote_id', db.Integer, db.ForeignKey('quotes.quote_id')))
+# books_quotes = db.Table("books_quotes", 
+#     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
+#     db.Column('quote_id', db.Integer, db.ForeignKey('quotes.quote_id')))
 
-char_books = db.Table("char_books", 
-    db.Column('character_id', db.String(100), db.ForeignKey('characters.character_id')),
-    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
+# char_books = db.Table("char_books", 
+#     db.Column('character_id', db.String(100), db.ForeignKey('characters.character_id')),
+#     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 
 class Book(db.Model):
 
@@ -56,9 +58,9 @@ class Book(db.Model):
     authors = db.relationship('Author', secondary=authors_books,
         backref=db.backref('books', lazy='dynamic'))
     locations = db.relationship('Location', secondary=locations_books, 
-    	backref=db.backref('books', lazy='dynamic'))
-    characters = db.relationship('Character', secondary=char_books,
         backref=db.backref('books', lazy='dynamic'))
+    # characters = db.relationship('Character', secondary=char_books,
+    #     backref=db.backref('books', lazy='dynamic'))
 
     def __repr__(self):
         """Provide helpful representation when printed."""
@@ -67,34 +69,63 @@ class Book(db.Model):
 
 class Author(db.Model):
 
-	__tablename__ = "authors"
-	author_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-	author_name = db.Column(db.String(100), nullable=False)
-	
-	
-	def __repr__(self):
-		"""Provide helpful representation when printed."""
-		return "<Author author_id=%d author=%s>" % (self.author_id, self.author_name)
+    __tablename__ = "authors"
+    author_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    author_name = db.Column(db.String(100), nullable=False)
+    
+    
+    def __repr__(self):
+        """Provide helpful representation when printed."""
+        return "<Author author_id=%d author=%s>" % (self.author_id, self.author_name)
 
 
 class Location(db.Model):
 
-	__tablename__ = "locations"
-	location_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-	city_county = db.Column(db.String(100), nullable=True)
-	state = db.Column(db.String(100), nullable=True)
-	country = db.Column(db.String(100), nullable=True)
+    __tablename__ = "locations"
+    location_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    city_county = db.Column(db.String(100), nullable=True)
+    state = db.Column(db.String(100), nullable=True)
+    country = db.Column(db.String(100), nullable=True)
+    longitude = db.Column(db.Integer, nullable=True)
+    latitude = db.Column(db.Integer, nullable=True)
 
-	def __repr__(self):
+    def get_other_books_within_radius(self, radius):
+        """Returns a list of books that are within a determined radius of an instance of a book. """
+        books_within_radius_list = []
+        
+        #Sets the perimeter around a particular long/lat
+        radius = float(radius)
+        long_range = (self.longitude-(radius/69.0), self.longitude+(radius/69.0))
+        lat_range = (self.latitude-(radius/49.0), self.latitude+(radius/49.0))
+        
+        #returns a list of location instances in the database that fall within the radius of the given long/lat
+        range_list = Location.query.filter(Location.longitude >= long_range[0], Location.longitude <= long_range[1] ).filter(Location.latitude >= lat_range[0], Location.latitude <= lat_range[1]).all()        
+        
+        #for each location instance, return a list of books in db associated within the set range
+        for location_object in range_list:
+            books_obj_list = location_object.books
+            for book_obj in books_obj_list:
+                books_within_radius_list.append(book_obj.title)
 
-		return "<Location location=%s, %s, %s>" % (self.city_county, self.state, self.country)
+            # books_within_radius_list.append(location_object.books.)
+        return set(books_within_radius_list)
+        # print range_list
+        # for location_object in range_list:
+        #     location_object
+        # return 
+
+    
+
+    def __repr__(self):
+
+        return "<Location location=%s, %s, %s>" % (self.city_county, self.state, self.country)
 
 
 class Category(db.Model):
 
     __tablename__ = "categories"
     category_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    category = db.Column(db.String(40), nullable=True, unique=True)
+    category = db.Column(db.String(40), nullable=True)
 
     books = db.relationship("Book", secondary=books_cats,
         backref=db.backref('categories', lazy='dynamic'))
@@ -107,8 +138,7 @@ class Event(db.Model):
 
     __tablename__ = "events"
     event_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    event = db.Column(db.String(100), nullable=False, unique=True)
-
+    event = db.Column(db.String(100), nullable=False)
     books = db.relationship("Book", secondary=books_events,
         backref=db.backref('events', lazy='dynamic'))
 
@@ -121,9 +151,12 @@ class Quote(db.Model):
     __tablename__ = "quotes"
     quote_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     quote = db.Column(db.String(500), nullable=True)
+    isbn = db.Column(db.String(30), db.ForeignKey('books.isbn'))
 
-    books = db.relationship("Book", secondary=books_quotes, 
-        backref=db.backref('quotes', lazy='dynamic'))
+    book = db.relationship("Book", backref=db.backref("quotes", order_by=quote_id))
+
+    # books = db.relationship("Book", secondary=books_quotes, 
+    #     backref=db.backref('quotes', lazy='dynamic'))
 
     def __repr__(self):
         #how do I reference the book for this?
@@ -134,10 +167,25 @@ class Character(db.Model):
     __tablename__ = "characters"
     character_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     character = db.Column(db.String(100), nullable=True)
+    isbn = db.Column(db.String(30), db.ForeignKey('books.isbn'))
+
+    book = db.relationship("Book", backref=db.backref("characters", order_by=character))
 
     def __repr__(self):
 
         return "<CHARACTER ID: %d CHARACTER: %s>" % (self.character_id, self.character)
+
+class Award(db.Model):
+
+    __tablename__ = "awards"
+    award_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    award = db.Column(db.String(100), nullable=True)
+    isbn = db.Column(db.String(30), db.ForeignKey('books.isbn'))
+
+    book = db.relationship("Book", backref=db.backref("awards", order_by=award))
+
+
+
 
 # End 
 ##############################################################################
@@ -149,7 +197,7 @@ def connect_to_db(app):
 
     # Configure to use our SQLite database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///projectwun.db'
-    app.config['SQLALCHEMY_ECHO'] = True
+    app.config['SQLALCHEMY_ECHO'] = False
     db.app = app
     db.init_app(app)
 
