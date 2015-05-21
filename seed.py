@@ -29,7 +29,7 @@ import geocoder
 # to make sure these environmental variables are set.
 
 #Maximum number of results to return. (integer, 0-40)
-MAX_RESULTS = 3
+MAX_RESULTS = 20
 #Index of the first result to return (starts at 0) (integer, 0+)
 START_INDEX = 0
 
@@ -47,6 +47,7 @@ def book_database_seeding(google_api_key, apikey, query):
     create_location_instance(list_tuples_commknow_isbn)
     LongLat()
     db.session.commit()
+    print "Querying and seeding complete"
 
 
 def google_book_search(query):
@@ -232,14 +233,15 @@ def get_LT_book_info(apikey, isbn_list):
             # print work_common_knowledge_unicode
             
             #unicode turned into utf8 in order to write into a file
-            work_common_knowledge_utf8 = work_common_knowledge_unicode.encode('utf-8')
-
-            entities = [('&nbsp;', u'\u00a0'),('&acirc;', u'\u00e2')]
+            work_common_knowledge_utf8 = work_common_knowledge_unicode
+            print "breaking here?"
+            entities = [('&nbsp;', u'\u00a0'),('&acirc;', u'\u00e2'),('&#x107;', u'\u0107'), ('&nbsp;', 0xc2), ('&oacute;', u'\xf3')]
             for before, after in entities:
-                work_common_knowledge_utf8 = work_common_knowledge_utf8.replace(before, after.encode('utf8'))
-
-    
-            list_tuples_commknow_isbn.append((work_common_knowledge_utf8, work))
+                print "or here?"
+                work_common_knowledge_utf8_enc = work_common_knowledge_utf8.decode('utf-8').replace(before, after.encode('utf-8'))
+                print "maybe here?"
+            
+            list_tuples_commknow_isbn.append((work_common_knowledge_utf8_enc, work))
             # print list_tuples_commknow_isbn
             # import pdb; pdb.set_trace()
     return list_tuples_commknow_isbn
@@ -249,14 +251,20 @@ def create_location_instance(list_tuples_commknow_isbn):
     #TO DO -- still get parsing errors -- try search "new york times bestselling 2014"
     # file_to_parse = open(file_name).read()
     # tree = ET.parse(file_name)
+    print "I'm now in here"
     for item in list_tuples_commknow_isbn:
-        commonknowledge = item[0]
-        print commonknowledge
+        commonknowledge = item[0].encode('utf-8')
+        entities = [('&nbsp;', u'\u00a0'),('&acirc;', u'\u00e2'),('&#x107;', u'\u0107'), ('&szlig;', 0xc3), ('&nbsp;', 0xc2), ('&oacute;', u'\xf3')]
+        for before, after in entities:
+            print "in the entities"
+            commonknowledge_enc = commonknowledge.decode('utf-8').replace(before, after.encode('utf-8'))
+            print "at end of for loop entities"
+        # print commonknowledge
         isbn = item[1]
         book = Book.query.get(isbn)
         print "book:", book
         print isbn
-        root = ET.fromstring(commonknowledge)
+        root = ET.fromstring(commonknowledge_enc)
         ns={'lt':'http://www.librarything.com/'}
         # import pdb; pdb.set_trace()
     # import pdb; pdb.set_trace()
@@ -356,14 +364,15 @@ def LongLat():
 
     for place in usa_cities_obj_list:
         location = place.city_county + ", " + place.state
-        print location
+        # print location
         location_obj = geocoder.google(location)
         latlong = location_obj.latlng
-        print location,latlong
-        print type(latlong)
-        place.longitude  = latlong[0]
-        place.latitude = latlong[1]
-        db.session.commit()
+        # print location,latlong
+        # print type(latlong)
+        if latlong:
+            place.latitude  = latlong[0]
+            place.longitude = latlong[1]
+            db.session.commit()
 
     # for location_obj in usa_cities_obj_list:
     #     dict_city_state[location_obj.state] = location_obj.city_county

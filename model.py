@@ -62,6 +62,40 @@ class Book(db.Model):
     # characters = db.relationship('Character', secondary=char_books,
     #     backref=db.backref('books', lazy='dynamic'))
 
+    def get_other_books_within_radius(self, radius):
+        """Returns a list of books that are within a determined radius of an instance of a book. """
+        
+        ####FYI:: Actually, this query along does not make sense, because a book can be associated with
+        # more than one place...so maybe I should move this to the "category" and 
+        #"description/keyword" section
+
+        books_within_radius_list = []
+
+        
+        #Sets the perimeter around a particular long/lat
+        radius = float(radius)
+        long_range = (self.longitude-(radius/69.0), self.longitude+(radius/69.0))
+        lat_range = (self.latitude-(radius/49.0), self.latitude+(radius/49.0))
+        
+        #returns a list of location instances in the database that fall within the radius of the given long/lat
+        range_list = Location.query\
+            .filter(Location.longitude >= long_range[0], Location.longitude <= long_range[1] )\
+            .filter(Location.latitude >= lat_range[0], Location.latitude <= lat_range[1])\
+            .all()        
+            
+        #for each location instance, return a list of books in db associated within the set range
+        for location_object in range_list:
+            books_obj_list = location_object.books
+            for book_obj in books_obj_list:
+                books_within_radius_list.append(book_obj.title)
+        unique_books_list = list(set(books_within_radius_list))
+            # books_within_radius_list.append(location_object.books.)
+        return ", ".join(unique_books_list)
+        # print range_list
+        # for location_object in range_list:
+        #     location_object
+        # return 
+
     def __repr__(self):
         """Provide helpful representation when printed."""
 
@@ -86,33 +120,51 @@ class Location(db.Model):
     city_county = db.Column(db.String(100), nullable=True)
     state = db.Column(db.String(100), nullable=True)
     country = db.Column(db.String(100), nullable=True)
-    longitude = db.Column(db.Integer, nullable=True)
     latitude = db.Column(db.Integer, nullable=True)
+    longitude = db.Column(db.Integer, nullable=True)
 
-    def get_other_books_within_radius(self, radius):
-        """Returns a list of books that are within a determined radius of an instance of a book. """
+    
+    def get_books_associated_with_location(self, city, state):
+        """Search by city and state and get back books associated with that location."""
+
+        location = city + ", " + state
+        location_obj = geocoder.google(location)
+        latlong = location_obj.latlng 
+        latitude = latlong[0]
+        longitude = latlong[1]
+
+        #I'm setting the default radius to 50 miles
+        radius = float(200.0)
+
+        #empty list for the books within a 50 mi radius
         books_within_radius_list = []
-        
-        #Sets the perimeter around a particular long/lat
-        radius = float(radius)
+
         long_range = (self.longitude-(radius/69.0), self.longitude+(radius/69.0))
         lat_range = (self.latitude-(radius/49.0), self.latitude+(radius/49.0))
         
         #returns a list of location instances in the database that fall within the radius of the given long/lat
-        range_list = Location.query.filter(Location.longitude >= long_range[0], Location.longitude <= long_range[1] ).filter(Location.latitude >= lat_range[0], Location.latitude <= lat_range[1]).all()        
-        
+        range_list = Location.query\
+            .filter(Location.longitude >= long_range[0], Location.longitude <= long_range[1] )\
+            .filter(Location.latitude >= lat_range[0], Location.latitude <= lat_range[1])\
+            .all()
+
         #for each location instance, return a list of books in db associated within the set range
         for location_object in range_list:
             books_obj_list = location_object.books
+            #could also return a list of book objects -rather than a list of books 
+            #this will be more important to return for the server file, but for now
+            #am just returning a list of book titles::
+
             for book_obj in books_obj_list:
                 books_within_radius_list.append(book_obj.title)
+        #important to turn the list into a set in order to avoid getting book titles
+        #multiple times when a book is associated with multiple places within a radius
+        unique_books_list = list(set(books_within_radius_list))
+        # books_within_radius_list.append(location_object.books.)
+        return ", ".join(unique_books_list)    
 
-            # books_within_radius_list.append(location_object.books.)
-        return set(books_within_radius_list)
-        # print range_list
-        # for location_object in range_list:
-        #     location_object
-        # return 
+
+
 
     
 
@@ -129,6 +181,10 @@ class Category(db.Model):
 
     books = db.relationship("Book", secondary=books_cats,
         backref=db.backref('categories', lazy='dynamic'))
+
+    def get_books_associated_with_category_and_location(self, subject, city, state):
+
+        category = Category.query.filter()
 
     def __repr__(self):
 
