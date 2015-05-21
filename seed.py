@@ -8,6 +8,13 @@ from model import Book, Author, Location, Category, Quote, Event, Character, Awa
 
 from sys import argv
 
+#not quite sure how this works, but it has aleviated my unicode errors!
+#source - random forum: http://mypy.pythonblogs.com/12_mypy/archive/1253_workaround_for_python_bug_ascii_codec_cant_encode_character_uxa0_in_position_111_ordinal_not_in_range128.html
+import sys;
+reload(sys);
+sys.setdefaultencoding("utf8")
+
+
 from server import app
 
 import xml.etree.ElementTree as ET
@@ -176,46 +183,7 @@ def create_book_author_instance(response):
 
     return isbn_list 
 
-            #         try:
-            #             db.session.add(book)
-            #             isbn_list.append(book.isbn)
-            #             print "an instance of a book created"
-            #             if bookauthors:
-            #                 for name in bookauthors:
-            #                     author = Author(author_name = name)
-            #                     db.session.add(author)
-            #                     book.authors.append(author)
-            #             print "instances of author created"
-            #             if categories:
-            #                 for item in categories:
-            #                     category_instance = Category(category = item)
-            #                     if not Category.query.filter_by(category = item).one():
-            #                     #if in not in data (check)
-            #                         db.session.add(category_instance)
-            #                     category_instance.books.append(book)
-            #             db.session.commit()
-
-            #         except exc.SQLAlchemyError:
-            #             db.session.rollback()
-            #             print "This book, ", book.isbn, "already exist in the database!"
-
-            # except ValueError:
-            #     print "ValueError. Skipping ", isbn
-                
-    
-        # magic stuff --- something about an isntance of a book referencing the authors 
-        # table in model.py and appending location/author to list.....
-
-                        
-        # magic stuff --- something about an isntance of a book referencing the authors table 
-        # in model.py and appending location/author to list.....
-        # book.authors.append(author)
-        # book.locations.append(location)
-
-                     
-                
-
-    
+          
 
 def get_LT_book_info(apikey, isbn_list):
     """This function takes a list of book instances, retrieves the isbn of a work (book), and returns the XML of the common knowledge from librarything.
@@ -230,18 +198,8 @@ def get_LT_book_info(apikey, isbn_list):
         if work_common_knowledge:
             # turns common knowledge into a unicode
             work_common_knowledge_unicode = work_common_knowledge.text
-            # print work_common_knowledge_unicode
             
-            #unicode turned into utf8 in order to write into a file
-            work_common_knowledge_utf8 = work_common_knowledge_unicode
-            print "breaking here?"
-            entities = [('&nbsp;', u'\u00a0'),('&acirc;', u'\u00e2'),('&#x107;', u'\u0107'), ('&nbsp;', 0xc2), ('&oacute;', u'\xf3')]
-            for before, after in entities:
-                print "or here?"
-                work_common_knowledge_utf8_enc = work_common_knowledge_utf8.decode('utf-8').replace(before, after.encode('utf-8'))
-                print "maybe here?"
-            
-            list_tuples_commknow_isbn.append((work_common_knowledge_utf8_enc, work))
+            list_tuples_commknow_isbn.append((work_common_knowledge_unicode, work))
             # print list_tuples_commknow_isbn
             # import pdb; pdb.set_trace()
     return list_tuples_commknow_isbn
@@ -253,18 +211,13 @@ def create_location_instance(list_tuples_commknow_isbn):
     # tree = ET.parse(file_name)
     print "I'm now in here"
     for item in list_tuples_commknow_isbn:
-        commonknowledge = item[0].encode('utf-8')
-        entities = [('&nbsp;', u'\u00a0'),('&acirc;', u'\u00e2'),('&#x107;', u'\u0107'), ('&szlig;', 0xc3), ('&nbsp;', 0xc2), ('&oacute;', u'\xf3')]
-        for before, after in entities:
-            print "in the entities"
-            commonknowledge_enc = commonknowledge.decode('utf-8').replace(before, after.encode('utf-8'))
-            print "at end of for loop entities"
-        # print commonknowledge
+        commonknowledge = item[0]
         isbn = item[1]
         book = Book.query.get(isbn)
         print "book:", book
         print isbn
-        root = ET.fromstring(commonknowledge_enc)
+        root = ET.fromstring(commonknowledge)
+        # root = ET.fromstring(commonknowledge_enc)
         ns={'lt':'http://www.librarything.com/'}
         # import pdb; pdb.set_trace()
     # import pdb; pdb.set_trace()
