@@ -4,37 +4,27 @@
 <h1>wunderLand</h1>
 
 <div class="book-search-results">
-	<p>Found {{ query_result_length }} books:</p>
-	{% for book in response.get('items', []) %}
-		<img src="{{ book.get('volumeInfo').get('imageLinks').get('thumbnail') }}">
-		<p>Title: {{ book.get('volumeInfo').get('title') }}</p> 
-		{% if book.get('volumeInfo').get('authors') %}
-			<p>Author(s): {{ ", ".join(book.get('volumeInfo').get('authors')) }}</p>
-		{% endif %}
-		{% if book.get('volumeInfo').get('categories') %}
-			<p>Categories: {{ ", ".join(book.get('volumeInfo').get('categories')) }}</p>
-		{% endif %}
-		<p>Description: {{ book.get('volumeInfo').get('description') }}</p>
-		<p>Thumbnail Link: {{ book.get('volumeInfo').get('imageLinks').get('thumbnail') }}</p>
-		<p>Publication Year: {{ book.get('volumeInfo').get('publishedDate') }}</p>
-		<p><a href='{{ book.get("volumeInfo").get("previewLink") }}'>Preview Link</a></p>
-
+	<p>Found <strong>{{ query_result_length }}</strong> books associated with <strong> {{ user_location_query }} </strong>:</p>
+	{% for book in book_obj_list %}
+		<a href="{{ book.preview_link }}"><img src="{{ book.thumbnail_url }}"></a>
+		<p>Title: {{ book.title }}</p>
+		<p>Author(s):</p>
+		{% for author in book.authors %}
+			<tab to=t1><p>{{ author.author_name }}</p>
+		{% endfor %}
+		<p>Categories:</p>
+		{% for category in book.categories %}
+			<p>{{ category.category }}</p>
+		{% endfor %}
+		<p>Publication Year: {{ book.publication_date }}</p>
+		<p>Description: {{ book.description }}</p>
+		<p>{{ book.average_ratings }} out of {{ book.ratings_count }} reviews</p>
 	{% endfor %}
 
 </div>
 
 <div class="footer">
-{# % for page_number in range(1, response['totalItems']|int, maxResults|int) % #}
-	<p>Displaying {{ page_number }} to {{ maxResults }} out of {{ response['totalItems'] }} results</p>
-	<div class="displayresults">
-		<form class="search-for-books" action='/moreresults/{{ page_number|int + 1 }}' method="POST">
-			<div class="search-for-books">
-				<label for="more_results">
-					<button type="submit" name="more_results" value="continue">
-				</label>
-			</div> 
-		</form>
-{# % endfor % #}
+
 
 </div>
 

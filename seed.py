@@ -36,9 +36,11 @@ import geocoder
 # to make sure these environmental variables are set.
 
 #Maximum number of results to return. (integer, 0-40)
-MAX_RESULTS = 20
+MAX_RESULTS = 40
 #Index of the first result to return (starts at 0) (integer, 0+)
-START_INDEX = 0
+START_INDEX = 240
+## last stopped after seeding at index 220 for 'california subject:"fiction"'
+# stopped after seeding at index 200 for 'bestseller books'
 
 #remember to run source secrets.sh in order to access this environmental variable
 # API provided from OS environment dictionary
@@ -76,10 +78,10 @@ def google_book_search(query):
     # #   search query ('android')
     # # The method returns an apiclient.http.HttpRequest object that encapsulates
     # # all information needed to make the request, but it does not call the API.
-    request = service.volumes().list(source='public', 
-                                    orderBy='relevance', 
-                                    printType='books', 
-                                    q=query, 
+    request = service.volumes().list(source='public',
+                                    orderBy='relevance',
+                                    printType='books',
+                                    q=query,
                                     startIndex=START_INDEX,
                                     maxResults=MAX_RESULTS,
                                     fields="items(volumeInfo(description,pageCount,categories,publishedDate,imageLinks/thumbnail,title,previewLink,industryIdentifiers,subtitle,authors,ratingsCount,mainCategory,averageRating))")
@@ -91,14 +93,14 @@ def google_book_search(query):
     response = request.execute()
     print "googled books and results returned"
     return response
-   
+
 
     # # Accessing the response like a dict object with an 'items' key returns a list
     # # of item objects (books). The item object is a dict object with a 'volumeInfo'
     # # key. The volumeInfo object is a dict with keys 'title' and 'authors'.
 def create_book_author_instance(response):
     isbn_list = []
-    #this "for loop" iterates through the response dictionary, which consists of books and a 
+    #this "for loop" iterates through the response dictionary, which consists of books and a
     #dictionary of information about the books (volumeInfo) as the key and value pair
     for book_dict in response.get('items', []):
         #I only want to store the book if it has an ISBN associated with it (could be an actual value
@@ -108,7 +110,7 @@ def create_book_author_instance(response):
             isbn = book_dict.get('volumeInfo', {}).get("industryIdentifiers")[0].get('identifier')
             print isbn
             #Since the value could be "None", this "if" checks for an actual isbn value
-           
+
                 #TODO -- I don't really want this because some isbns have letters at the end
                 #but don't want the non-isbn numbers "UCSC:..." or "STANFORD:..."
                 #regular expressions -- or make sure doesn't contain a colon...
@@ -133,15 +135,18 @@ def create_book_author_instance(response):
 
                 publishedDate_unformated = book_dict.get('volumeInfo', {}).get('publishedDate')
                 if publishedDate_unformated:
-                    if len(publishedDate_unformated)  > 8:
-                        publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m-%d")
-                    elif len(publishedDate_unformated) < 5:
-                        publishedDate = datetime.strptime(publishedDate_unformated, "%Y")  
-                    else:
-                        publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m")
+                    try:
+                        if len(publishedDate_unformated)  > 8:
+                            publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m-%d")
+                        elif len(publishedDate_unformated) < 5:
+                            publishedDate = datetime.strptime(publishedDate_unformated, "%Y")
+                        else:
+                            publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m")
+                    except:
+                        print "Publication date formating errors for: ", title
                 print "Publication Date: ", publishedDate
 
-                previewLink = book_dict.get('volumeInfo', {}).get("previewLink") 
+                previewLink = book_dict.get('volumeInfo', {}).get("previewLink")
                 print "PreviewLink: ", previewLink
                 pageCount = book_dict.get('volumeInfo', {}).get('pageCount')
                 ratingsCount = book_dict.get('volumeInfo', {}).get('ratingsCount')
@@ -181,9 +186,9 @@ def create_book_author_instance(response):
     print isbn_list
     print "book instance creation complete"
 
-    return isbn_list 
+    return isbn_list
 
-          
+
 
 def get_LT_book_info(apikey, isbn_list):
     """This function takes a list of book instances, retrieves the isbn of a work (book), and returns the XML of the common knowledge from librarything.
@@ -194,16 +199,16 @@ def get_LT_book_info(apikey, isbn_list):
         work_info = {"method" : "librarything.ck.getwork", "isbn" : work, "apikey" : apikey}
         # creates a class 'requests.models.Response' - prints common work
         work_common_knowledge = requests.get('http://librarything.com/services/rest/1.1/', params=work_info)
-        
+
         if work_common_knowledge:
             # turns common knowledge into a unicode
             work_common_knowledge_unicode = work_common_knowledge.text
-            
+
             list_tuples_commknow_isbn.append((work_common_knowledge_unicode, work))
             # print list_tuples_commknow_isbn
             # import pdb; pdb.set_trace()
     return list_tuples_commknow_isbn
-    
+
 
 def create_location_instance(list_tuples_commknow_isbn):
     #TO DO -- still get parsing errors -- try search "new york times bestselling 2014"
@@ -211,121 +216,158 @@ def create_location_instance(list_tuples_commknow_isbn):
     # tree = ET.parse(file_name)
     print "I'm now in here"
     for item in list_tuples_commknow_isbn:
-        commonknowledge = item[0]
-        isbn = item[1]
-        book = Book.query.get(isbn)
-        print "book:", book
-        print isbn
-        root = ET.fromstring(commonknowledge)
-        # root = ET.fromstring(commonknowledge_enc)
-        ns={'lt':'http://www.librarything.com/'}
-        # import pdb; pdb.set_trace()
-    # import pdb; pdb.set_trace()
-    #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
-        for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
-            place = child.text
-            # print place
-            place_list = place.split(', ')
-            print place_list
+        try:
+            commonknowledge = item[0]
+            isbn = item[1]
+            book = Book.query.get(isbn)
+            print "book:", book
+            print isbn
+            root = ET.fromstring(commonknowledge)
+            # root = ET.fromstring(commonknowledge_enc)
+            ns={'lt':'http://www.librarything.com/'}
             # import pdb; pdb.set_trace()
-            #only pulling out places that have a city and state listed
-            #TO DO -- how can I make this code more efficient?
-            #if I put the db.session.add() outside of the if loop, then there will be
-            #instances where location does not exist and I will get an error
-            
-            if len(place_list) == 2:
-                location = Location(city_county = None,
-                                    state = place_list[0],
-                                    country = place_list[1])
-                db.session.add(location)
-                book.locations.append(location)
-            elif len(place_list) == 3:
-                location = Location(city_county = place_list[0],
-                                    state = place_list[1],
-                                    country = place_list[2])
-                db.session.add(location)
-                book.locations.append(location)
-            elif len(place_list) == 4:
-                location = Location(city_county = place_list[0] + ", "+  place_list[1],
-                                    state = place_list[2],
-                                    country = place_list[3])
-                db.session.add(location)
-                book.locations.append(location)
+        # import pdb; pdb.set_trace()
+        #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
+            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
+                place = child.text
+                # print place
+                place_list = place.split(', ')
+                print place_list
+                # import pdb; pdb.set_trace()
+                #only pulling out places that have a city and state listed
+                #TO DO -- how can I make this code more efficient?
+                #if I put the db.session.add() outside of the if loop, then there will be
+                #instances where location does not exist and I will get an error
 
-            # db.session.add(location)
-            # book = Book.query.get(item[1])
-            # # import pdb; pdb.set_trace()
-            # book.locations.append(location)
-        #WARNING/FYI: FutureWarning: The behavior of this method will change in 
-        #future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
-        if root.find("lt:ltml", ns) is not None:
-            if root.find("lt:ltml", ns).find("lt:item", ns) is not None:
-                if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns) is not None:
-                    if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns) is not None:
-                        
-                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='events']", ns) is not None:
-                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='events']/lt:versionList/lt:version/lt:factList/",ns):
-                                event = child.text
-                                event_instance = Event(event=event)
-                                if not Event.query.filter_by(event=event).first():
-                                    db.session.add(event_instance)
-                                else:
-                                    print "event already in database!"
-                                
-                                event_instance.books.append(book)
+                if len(place_list) == 2:
+                    location = Location(city_county = None,
+                                        state = place_list[0],
+                                        country = place_list[1])
+                    db.session.add(location)
+                    book.locations.append(location)
+                elif len(place_list) == 3:
+                    location = Location(city_county = place_list[0],
+                                        state = place_list[1],
+                                        country = place_list[2])
+                    db.session.add(location)
+                    book.locations.append(location)
+                elif len(place_list) == 4:
+                    location = Location(city_county = place_list[0] + ", "+  place_list[1],
+                                        state = place_list[2],
+                                        country = place_list[3])
+                    db.session.add(location)
+                    book.locations.append(location)
 
-                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='characternames']", ns) is not None:
-                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/*",ns):
-                                character = child.text
-                                character_instance = Character(character=character, 
-                                                                isbn=isbn)
-                                if not Character.query.filter_by(character=character).all():
-                                    db.session.add(character_instance)
-                                else:
-                                    print "character name already in database!"
-                                # character_instance.books.append(book)
+            #WARNING/FYI: FutureWarning: The behavior of this method will change in
+            #future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+            if root.find("lt:ltml", ns) is not None:
+                if root.find("lt:ltml", ns).find("lt:item", ns) is not None:
+                    if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns) is not None:
+                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns) is not None:
 
-                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='quotations']", ns) is not None:
-                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='quotations']/lt:versionList/lt:version/lt:factList/*",ns):
-                                quotation = child.text.lstrip("<![CDATA[").rstrip("]]>")
-                                print quotation
-                                quote_instance = Quote(quote=quotation, 
-                                                        isbn=isbn)
-                                db.session.add(quote_instance)
-                                # quote_instance.books.append(book)
+                            if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='events']", ns) is not None:
+                                for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='events']/lt:versionList/lt:version/lt:factList/",ns):
+                                    event = child.text
+                                    event_instance = Event(event=event)
+                                    if not Event.query.filter_by(event=event).first():
+                                        db.session.add(event_instance)
+                                    else:
+                                        print "event already in database!"
 
-                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='awards']", ns) is not None:
-                            for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='awards']/lt:versionList/lt:version/lt:factList/*",ns):
-                                award = child.text
-                                print award
-                                award_instance = Award(award=award,
-                                                        isbn=isbn)
-                                db.session.add(award_instance)
-                                # quote_instance.books.append(book)
+                                    event_instance.books.append(book)
 
-                        if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
-                            first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
-                            print first_words
-                            book.first_words = first_words
+                            if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='characternames']", ns) is not None:
+                                for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='characternames']/lt:versionList/lt:version/lt:factList/*",ns):
+                                    character = child.text
+                                    character_instance = Character(character=character,
+                                                                    isbn=isbn)
+                                    if not Character.query.filter_by(character=character).all():
+                                        db.session.add(character_instance)
+                                    else:
+                                        print "character name already in database!"
+                                    # character_instance.books.append(book)
 
+                            if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='quotations']", ns) is not None:
+                                for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='quotations']/lt:versionList/lt:version/lt:factList/*",ns):
+                                    quotation = child.text.lstrip("<![CDATA[").rstrip("]]>")
+                                    print quotation
+                                    quote_instance = Quote(quote=quotation,
+                                                            isbn=isbn)
+                                    db.session.add(quote_instance)
+                                    # quote_instance.books.append(book)
+
+                            if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='awards']", ns) is not None:
+                                for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='awards']/lt:versionList/lt:version/lt:factList/*",ns):
+                                    award = child.text
+                                    print award
+                                    award_instance = Award(award=award,
+                                                            isbn=isbn)
+                                    db.session.add(award_instance)
+                                    # quote_instance.books.append(book)
+
+                            if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
+                                first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
+                                print first_words
+                                book.first_words = first_words
+        except:
+            print "Error! Probably parsing..."
 def LongLat():
-    
-    usa_cities_obj_list = Location.query.filter_by(country='USA').filter(Location.city_county.isnot(None)).all()
-    print usa_cities_obj_list
-    # dict_city_state = {l.state: l.city_county for l in usa_cities_obj_list}
-    dict_city_state = {}
 
-    for place in usa_cities_obj_list:
-        location = place.city_county + ", " + place.state
-        # print location
-        location_obj = geocoder.google(location)
-        latlong = location_obj.latlng
-        # print location,latlong
-        # print type(latlong)
-        if latlong:
-            place.latitude  = latlong[0]
-            place.longitude = latlong[1]
-            db.session.commit()
+    location_obj_list = Location.query.filter(Location.latitude.is_(None)).all()
+    # print location_obj_list
+    # dict_city_state = {l.state: l.city_county for l in usa_cities_obj_list}
+    location_dict= {}
+
+    for place in location_obj_list:
+        if not place.city_county:
+            location = place.state + ", " + place.country
+        else:
+            location = place.city_county + ", " + place.state
+
+        try:
+            location_obj = geocoder.google(location)
+        except:
+            print "This location, ", location, "could not be found."
+        else:
+            latlong = location_obj.latlng
+            if latlong:
+                place.latitude  = latlong[0]
+                place.longitude = latlong[1]
+                db.session.commit()
+
+
+
+
+
+    # usa_cities_obj_list = Location.query.filter_by(country='USA').filter(Location.city_county.isnot(None)).all()
+    # print usa_cities_obj_list
+    # # dict_city_state = {l.state: l.city_county for l in usa_cities_obj_list}
+    # dict_city_state = {}
+
+    # for place in usa_cities_obj_list:
+    #     location = place.city_county + ", " + place.state
+    #     # print location
+    #     location_obj = geocoder.google(location)
+    #     latlong = location_obj.latlng
+    #     # print location,latlong
+    #     # print type(latlong)
+    #     if latlong:
+    #         place.latitude  = latlong[0]
+    #         place.longitude = latlong[1]
+    #         db.session.commit()
+
+
+
+        # location = place.city_county + ", " + place.state
+        # # print location
+        # location_obj = geocoder.google(location)
+        # latlong = location_obj.latlng
+        # # print location,latlong
+        # # print type(latlong)
+        # if latlong:
+        #     place.latitude  = latlong[0]
+        #     place.longitude = latlong[1]
+        #     db.session.commit()
 
     # for location_obj in usa_cities_obj_list:
     #     dict_city_state[location_obj.state] = location_obj.city_county
@@ -345,14 +387,14 @@ def LongLat():
         # import pdb; pdb.set_trace()
 
 
-            
-            
 
-       
+
+
+
 # def store_text_common_knowledge(work_common_knowledge_utf8, isbn):
     # """This function runs through the get_LT_book_info(),
     # takes the common knowledge of a work and saves it to a text file."""
-    
+
     # file_name = str(isbn) + ".xml"
     # print file_name
     # # import pdb; pdb.set_trace()

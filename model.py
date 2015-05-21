@@ -134,7 +134,7 @@ class Location(db.Model):
         longitude = latlong[1]
 
         #I'm setting the default radius to 50 miles
-        radius = float(200.0)
+        radius = float(100.0)
 
         #empty list for the books within a 50 mi radius
         books_within_radius_list = []
@@ -147,7 +147,7 @@ class Location(db.Model):
             .filter(Location.longitude >= long_range[0], Location.longitude <= long_range[1] )\
             .filter(Location.latitude >= lat_range[0], Location.latitude <= lat_range[1])\
             .all()
-
+        alist = []
         #for each location instance, return a list of books in db associated within the set range
         for location_object in range_list:
             books_obj_list = location_object.books
@@ -156,12 +156,14 @@ class Location(db.Model):
             #am just returning a list of book titles::
 
             for book_obj in books_obj_list:
+                alist.append(book_obj)
                 books_within_radius_list.append(book_obj.title)
         #important to turn the list into a set in order to avoid getting book titles
         #multiple times when a book is associated with multiple places within a radius
         unique_books_list = list(set(books_within_radius_list))
         # books_within_radius_list.append(location_object.books.)
-        return ", ".join(unique_books_list)    
+        # return ", ".join(unique_books_list)  
+        return list(set(alist))
 
 
 
@@ -240,7 +242,9 @@ class Award(db.Model):
 
     book = db.relationship("Book", backref=db.backref("awards", order_by=award))
 
+    def __repr__(self):
 
+        return "<AWARD id: %d name: %s>" % (self.award_id, self.award)
 
 
 # End 
