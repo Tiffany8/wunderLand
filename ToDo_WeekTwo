@@ -1,0 +1,28 @@
+
+-- Focus on one state/region
+-- Search by location -- "intelligent location"
+-- Search by "keywords" 
+
+-- MVP: click a button to search for either location or keyword
+-- Advanced: disambiguate type of search OR have the user type in both location and keywords and merge results
+
+-- get results back based on popularity (ratings + number of reviews --- available in GBooks API)
+-- pagination of results from GBooks (there's sample code on Google Books for this)
+-- zipcode + city + state table and association table set up
+
+-- seeding a large number of books (>2,000)
+-- break up the information retrieval (GBooks call / LibraryThing call)
+
+-- UI
+
+END of WEEK Goal(s):
+-- LOCATION, LOCATION, LOCATION
+	-- typo problems (flash message -- "this location does not exist")
+	-- how can a user search by location (zipcode, city, region, state, county) --  freeform text
+	-- focus on one type of input at a time (maybe start with zipcode)
+-- reading about: NLP (synonyms, search relevancy -- how to determine, tokenization, ngrams, tutorials on basic search engine building using many of the aforementioned concepts, search indexing) -- book: TFIDF, freeform text, python library - NLTK
+-- MVP: click a button to search for either location or keyword
+-- seeding a large number of books (>2,000)
+-- break up the information retrieval (GBooks call / LibraryThing call)
+-- zipcode + city + state table and association table set up
+

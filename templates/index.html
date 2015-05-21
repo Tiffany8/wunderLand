@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>wunderLand</h1>
+
+<form class="search-for-books" action='/' method="POST">
+	<div class="search-for-books">
+		<label for="search-input">
+			<input type="text" name="search-input" id="user_book_query">
+		</label>
+		<label for="radius">radius</label>
+			<select name="radius">
+				<option value="25">25 mi</option>
+				<option value="50">50 mi</option>
+				<option value="100">100 mi</option>
+				<option value="200">200 mi</option>
+			</select>
+	</div>
+	<button class="book-search-submit" type="submit">search</button>
+</form>
+
+{% endblock %}
