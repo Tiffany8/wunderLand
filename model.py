@@ -8,6 +8,10 @@ from datetime import datetime
 db = SQLAlchemy()
 import geocoder
 
+import sys;
+reload(sys);
+sys.setdefaultencoding("utf8")
+
 ##############################################################################
 # Part 1: Compose ORM
 
@@ -18,7 +22,7 @@ authors_books = db.Table('authors_books',
     db.Column('author_id', db.Integer, db.ForeignKey('authors.author_id')),
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 #TO DO -- change the location id to si
-locations_books = db.Table('locations_books', 
+locations_books = db.Table('locations_books',
     db.Column('location_id', db.Integer, db.ForeignKey('locations.location_id')),
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 
@@ -26,15 +30,15 @@ books_cats = db.Table('books_cats',
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
     db.Column('category_id', db.Integer, db.ForeignKey('categories.category_id')))
 
-books_events = db.Table('books_events', 
+books_events = db.Table('books_events',
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
     db.Column('event_id', db.Integer, db.ForeignKey('events.event_id')))
 
-# books_quotes = db.Table("books_quotes", 
+# books_quotes = db.Table("books_quotes",
 #     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
 #     db.Column('quote_id', db.Integer, db.ForeignKey('quotes.quote_id')))
 
-# char_books = db.Table("char_books", 
+# char_books = db.Table("char_books",
 #     db.Column('character_id', db.String(100), db.ForeignKey('characters.character_id')),
 #     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 
@@ -42,47 +46,47 @@ class Book(db.Model):
 
     __tablename__ = "books"
     isbn = db.Column(db.String(30), primary_key=True)
-    title = db.Column(db.String(70), nullable=False)
-    subtitle = db.Column(db.String(70), nullable=True)
-    description = db.Column(db.String(500), nullable=True)
-    thumbnail_url = db.Column(db.String(150), nullable=True)
+    title = db.Column(db.Text(), nullable=False)
+    subtitle = db.Column(db.Text(), nullable=True)
+    description = db.Column(db.Text(), nullable=True)
+    thumbnail_url = db.Column(db.String(200), nullable=True)
     publication_date = db.Column(db.DateTime(20), nullable=True)
-    preview_link = db.Column(db.String(150), nullable=True)
+    preview_link = db.Column(db.String(200), nullable=True)
     page_count = db.Column(db.Integer, nullable=True)
     ratings_count = db.Column(db.Integer, nullable=True)
     average_ratings = db.Column(db.Float, nullable=True)
     main_category = db.Column(db.String(50), nullable=True)
 
-    first_words = db.Column(db.String(500), nullable=True)
+    first_words = db.Column(db.Text(), nullable=True)
 
     authors = db.relationship('Author', secondary=authors_books,
         backref=db.backref('books', lazy='dynamic'))
-    locations = db.relationship('Location', secondary=locations_books, 
+    locations = db.relationship('Location', secondary=locations_books,
         backref=db.backref('books', lazy='dynamic'))
     # characters = db.relationship('Character', secondary=char_books,
     #     backref=db.backref('books', lazy='dynamic'))
 
     def get_other_books_within_radius(self, radius):
         """Returns a list of books that are within a determined radius of an instance of a book. """
-        
+
         ####FYI:: Actually, this query along does not make sense, because a book can be associated with
-        # more than one place...so maybe I should move this to the "category" and 
+        # more than one place...so maybe I should move this to the "category" and
         #"description/keyword" section
 
         books_within_radius_list = []
 
-        
+
         #Sets the perimeter around a particular long/lat
         radius = float(radius)
         long_range = (self.longitude-(radius/69.0), self.longitude+(radius/69.0))
         lat_range = (self.latitude-(radius/49.0), self.latitude+(radius/49.0))
-        
+
         #returns a list of location instances in the database that fall within the radius of the given long/lat
         range_list = Location.query\
             .filter(Location.longitude >= long_range[0], Location.longitude <= long_range[1] )\
             .filter(Location.latitude >= lat_range[0], Location.latitude <= lat_range[1])\
-            .all()        
-            
+            .all()
+
         #for each location instance, return a list of books in db associated within the set range
         for location_object in range_list:
             books_obj_list = location_object.books
@@ -94,7 +98,7 @@ class Book(db.Model):
         # print range_list
         # for location_object in range_list:
         #     location_object
-        # return 
+        # return
 
     def __repr__(self):
         """Provide helpful representation when printed."""
@@ -105,9 +109,9 @@ class Author(db.Model):
 
     __tablename__ = "authors"
     author_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    author_name = db.Column(db.String(100), nullable=False)
-    
-    
+    author_name = db.Column(db.Text(), nullable=False)
+
+
     def __repr__(self):
         """Provide helpful representation when printed."""
         return "<Author author_id=%d author=%s>" % (self.author_id, self.author_name)
@@ -123,35 +127,35 @@ class Location(db.Model):
     latitude = db.Column(db.Integer, nullable=True)
     longitude = db.Column(db.Integer, nullable=True)
 
-    
-    def get_books_associated_with_location(self, city, state):
+    @classmethod
+    def get_books_associated_with_location(cls, radius,location):
         """Search by city and state and get back books associated with that location."""
 
-        location = city + ", " + state
+        # location = city + ", " + state, + ", " + country
         location_obj = geocoder.google(location)
-        latlong = location_obj.latlng 
+        latlong = location_obj.latlng
         latitude = latlong[0]
         longitude = latlong[1]
 
-        #I'm setting the default radius to 50 miles
-        radius = float(100.0)
+        #I'm setting the default radius to 100 miles
+        radius = float(radius)
 
         #empty list for the books within a 50 mi radius
         books_within_radius_list = []
 
-        long_range = (self.longitude-(radius/69.0), self.longitude+(radius/69.0))
-        lat_range = (self.latitude-(radius/49.0), self.latitude+(radius/49.0))
-        
+        long_range = (longitude-(radius/69.0), longitude+(radius/69.0))
+        lat_range = (latitude-(radius/49.0), latitude+(radius/49.0))
+
         #returns a list of location instances in the database that fall within the radius of the given long/lat
-        range_list = Location.query\
-            .filter(Location.longitude >= long_range[0], Location.longitude <= long_range[1] )\
-            .filter(Location.latitude >= lat_range[0], Location.latitude <= lat_range[1])\
+        range_list = cls.query\
+            .filter(cls.longitude >= long_range[0], cls.longitude <= long_range[1] )\
+            .filter(cls.latitude >= lat_range[0], cls.latitude <= lat_range[1])\
             .all()
         alist = []
         #for each location instance, return a list of books in db associated within the set range
         for location_object in range_list:
             books_obj_list = location_object.books
-            #could also return a list of book objects -rather than a list of books 
+            #could also return a list of book objects -rather than a list of books
             #this will be more important to return for the server file, but for now
             #am just returning a list of book titles::
 
@@ -162,13 +166,13 @@ class Location(db.Model):
         #multiple times when a book is associated with multiple places within a radius
         unique_books_list = list(set(books_within_radius_list))
         # books_within_radius_list.append(location_object.books.)
-        # return ", ".join(unique_books_list)  
+        # return ", ".join(unique_books_list)
         return list(set(alist))
 
 
 
 
-    
+
 
     def __repr__(self):
 
@@ -196,7 +200,7 @@ class Event(db.Model):
 
     __tablename__ = "events"
     event_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    event = db.Column(db.String(100), nullable=False)
+    event = db.Column(db.Text(), nullable=False)
     books = db.relationship("Book", secondary=books_events,
         backref=db.backref('events', lazy='dynamic'))
 
@@ -208,12 +212,12 @@ class Quote(db.Model):
 
     __tablename__ = "quotes"
     quote_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    quote = db.Column(db.String(500), nullable=True)
+    quote = db.Column(db.Text(), nullable=True)
     isbn = db.Column(db.String(30), db.ForeignKey('books.isbn'))
 
     book = db.relationship("Book", backref=db.backref("quotes", order_by=quote_id))
 
-    # books = db.relationship("Book", secondary=books_quotes, 
+    # books = db.relationship("Book", secondary=books_quotes,
     #     backref=db.backref('quotes', lazy='dynamic'))
 
     def __repr__(self):
@@ -224,7 +228,7 @@ class Character(db.Model):
 
     __tablename__ = "characters"
     character_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    character = db.Column(db.String(100), nullable=True)
+    character = db.Column(db.Text(), nullable=True)
     isbn = db.Column(db.String(30), db.ForeignKey('books.isbn'))
 
     book = db.relationship("Book", backref=db.backref("characters", order_by=character))
@@ -237,7 +241,7 @@ class Award(db.Model):
 
     __tablename__ = "awards"
     award_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    award = db.Column(db.String(100), nullable=True)
+    award = db.Column(db.Text(), nullable=True)
     isbn = db.Column(db.String(30), db.ForeignKey('books.isbn'))
 
     book = db.relationship("Book", backref=db.backref("awards", order_by=award))
@@ -247,7 +251,7 @@ class Award(db.Model):
         return "<AWARD id: %d name: %s>" % (self.award_id, self.award)
 
 
-# End 
+# End
 ##############################################################################
 # Helper functions
 
@@ -256,7 +260,7 @@ def connect_to_db(app):
     """Connect the database to our Flask app."""
 
     # Configure to use our SQLite database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///projectwun.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://localhost:5432/projectwun'
     app.config['SQLALCHEMY_ECHO'] = False
     db.app = app
     db.init_app(app)

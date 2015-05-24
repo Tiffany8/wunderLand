@@ -3,7 +3,7 @@
 
 <h1>wunderLand</h1>
 
-<form class="search-for-books" action='/' method="POST">
+<form class="search-for-books" action='/search' method="POST">
 	<div class="search-for-books">
 		<label for="search-input">
 			<input type="text" name="search-input" id="user_book_query">
@@ -16,7 +16,7 @@
 				<option value="200">200 mi</option>
 			</select>
 	</div>
-	<button class="book-search-submit" type="submit">search</button>
+	<button id="book-search-submit-button" class="book-search" type="submit">search</button>
 </form>
 
 {% endblock %}

@@ -3,28 +3,11 @@
 
 <h1>wunderLand</h1>
 
-<div class="book-search-results">
-	<p>Found <strong>{{ query_result_length }}</strong> books associated with <strong> {{ user_location_query }} </strong>:</p>
-	{% for book in book_obj_list %}
-		<a href="{{ book.preview_link }}"><img src="{{ book.thumbnail_url }}"></a>
-		<p>Title: {{ book.title }}</p>
-		<p>Author(s):</p>
-		{% for author in book.authors %}
-			<tab to=t1><p>{{ author.author_name }}</p>
-		{% endfor %}
-		<p>Categories:</p>
-		{% for category in book.categories %}
-			<p>{{ category.category }}</p>
-		{% endfor %}
-		<p>Publication Year: {{ book.publication_date }}</p>
-		<p>Description: {{ book.description }}</p>
-		<p>{{ book.average_ratings }} out of {{ book.ratings_count }} reviews</p>
-	{% endfor %}
+<div id='results-div' class="book-search-results"><p>Found <span id="number-of-results"></span> books associated with <span id="user-location-query"></span>.</div>
 
-</div>
+<div id='book-result-div' class="book-search-results"></div>
 
 <div class="footer">
-
 
 </div>
 

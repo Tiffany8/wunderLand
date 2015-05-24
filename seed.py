@@ -38,7 +38,7 @@ import geocoder
 #Maximum number of results to return. (integer, 0-40)
 MAX_RESULTS = 40
 #Index of the first result to return (starts at 0) (integer, 0+)
-START_INDEX = 240
+START_INDEX = 120
 ## last stopped after seeding at index 220 for 'california subject:"fiction"'
 # stopped after seeding at index 200 for 'bestseller books'
 
@@ -281,10 +281,10 @@ def create_location_instance(list_tuples_commknow_isbn):
                                     character = child.text
                                     character_instance = Character(character=character,
                                                                     isbn=isbn)
-                                    if not Character.query.filter_by(character=character).all():
-                                        db.session.add(character_instance)
-                                    else:
-                                        print "character name already in database!"
+                                    # if not Character.query.filter_by(character=character).all():
+                                    db.session.add(character_instance)
+                                    # else:
+                                        # print "character name already in database!"
                                     # character_instance.books.append(book)
 
                             if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='quotations']", ns) is not None:

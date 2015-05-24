@@ -1,7 +1,7 @@
 
 -- Focus on one state/region
 -- Search by location -- "intelligent location"
--- Search by "keywords" 
+-- Search by "keywords"
 
 -- MVP: click a button to search for either location or keyword
 -- Advanced: disambiguate type of search OR have the user type in both location and keywords and merge results
@@ -26,3 +26,8 @@ END of WEEK Goal(s):
 -- break up the information retrieval (GBooks call / LibraryThing call)
 -- zipcode + city + state table and association table set up
 
+Thursday:
+-- create a server.py
+--queries:
+	input location and return a set of books
+	input category and location and return a set of books
