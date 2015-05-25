@@ -36,11 +36,15 @@ import geocoder
 # to make sure these environmental variables are set.
 
 #Maximum number of results to return. (integer, 0-40)
-MAX_RESULTS = 40
+MAX_RESULTS = 1
 #Index of the first result to return (starts at 0) (integer, 0+)
-START_INDEX = 120
+START_INDEX = 20
 ## last stopped after seeding at index 220 for 'california subject:"fiction"'
-# stopped after seeding at index 200 for 'bestseller books'
+# stopped after seeding at index 200 for
+#sunday -- started at 160-400 'new york times bestseller books'
+#books - 200
+#subject:fiction -- 240
+#pulitzer prize winning books -120
 
 #remember to run source secrets.sh in order to access this environmental variable
 # API provided from OS environment dictionary
@@ -226,8 +230,8 @@ def create_location_instance(list_tuples_commknow_isbn):
             # root = ET.fromstring(commonknowledge_enc)
             ns={'lt':'http://www.librarything.com/'}
             # import pdb; pdb.set_trace()
-        # import pdb; pdb.set_trace()
-        #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
+            # import pdb; pdb.set_trace()
+            #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
             for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
                 place = child.text
                 # print place
@@ -307,7 +311,7 @@ def create_location_instance(list_tuples_commknow_isbn):
 
                             if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                                 first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
-                                print first_words
+                                print "first words: ", first_words
                                 book.first_words = first_words
         except:
             print "Error! Probably parsing..."

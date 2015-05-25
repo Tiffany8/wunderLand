@@ -29,48 +29,36 @@ def index():
 
     return render_template("index.html")
 
-@app.route("/search", methods=["POST"])
+@app.route("/search", methods=["GET"])
 def search_for_books():
     """Search for books through the homepage by location."""
 
-    user_location_query = flaskrequest.form.get('search-input')
+    user_location_query = flaskrequest.args.get('search-input')
     print "user query, ", user_location_query
-    radius = flaskrequest.form.get('radius')
+    radius = flaskrequest.args.get('radius')
     print "radius1, ", radius
     radius = int(radius)
     print "radius, ", radius
     print user_location_query
 
-    # #assess user input
-    # try:
-    #     user_location_query_list = ", ".join(user_location_query)
-    #     if len(user_location_query_list) == 2:
-    #         city, state = user_location_query_list
-    #     if len(user_location_query_list) == 3:
-    #         city, state, country = user_location_query_list
-    # except:
-    #     city = user_location_query_list
-    # else:
-    #     print "Please enter a location (city, state)"
-
     #query for books associated with place within 100mi
     #returns a list of book objects
-    jsonify_search_result_list = []
-    book_obj_list = Location.get_books_associated_with_location(radius, user_location_query)
-    #for loop to pull out the attributes
-    for book_object in book_obj_list:
-        authorlist = []
-        if book_object.authors:
-            for author in book_object.authors:
-                authorlist.append(author.author_name)
-        book_dict = {}
-        book_dict["title"] = book_object.title
-        book_dict["subtitle"] = book_object.subtitle
-        book_dict["authors"] = ", ".join(authorlist)
-        book_dict["description"] = book_object.description
-        book_dict["thumbnailUrl"] = book_object.thumbnail_url
-        book_dict["previewLink"] = book_object.preview_link
-        jsonify_search_result_list.append(book_dict)
+    jsonify_search_result_list = [radius, user_location_query]
+    # book_obj_list = Location.get_books_associated_with_location(radius, user_location_query)
+    # #for loop to pull out the attributes
+    # for book_object in book_obj_list:
+    #     authorlist = []
+    #     if book_object.authors:
+    #         for author in book_object.authors:
+    #             authorlist.append(author.author_name)
+    #     book_dict = {}
+    #     book_dict["title"] = book_object.title
+    #     book_dict["subtitle"] = book_object.subtitle
+    #     book_dict["authors"] = ", ".join(authorlist)
+    #     book_dict["description"] = book_object.description
+    #     book_dict["thumbnailUrl"] = book_object.thumbnail_url
+    #     book_dict["previewLink"] = book_object.preview_link
+    #     jsonify_search_result_list.append(book_dict)
     #put them in a dictionary
     #append each dictionary to a list
     #jsonify that list of dictionaries
@@ -78,6 +66,11 @@ def search_for_books():
     print "search complete"
     # user_location_query, jsonify_search_result_list = jsonList_query
     return jsonify(name = jsonify_search_result_list)
+
+# @app.route("/search")
+# def displayResults():
+    
+#     return render_template("searchresults.html")
 
 
 
