@@ -36,9 +36,9 @@ import geocoder
 # to make sure these environmental variables are set.
 
 #Maximum number of results to return. (integer, 0-40)
-MAX_RESULTS = 1
+MAX_RESULTS = 40
 #Index of the first result to return (starts at 0) (integer, 0+)
-START_INDEX = 20
+START_INDEX = 0
 ## last stopped after seeding at index 220 for 'california subject:"fiction"'
 # stopped after seeding at index 200 for
 #sunday -- started at 160-400 'new york times bestseller books'
@@ -391,7 +391,12 @@ def LongLat():
         # import pdb; pdb.set_trace()
 
 
-
+def command_line_query_loop():
+    max_results = 40
+    total_query = 0
+    while total_query < 500:
+        book_database_seeding(google_api_key, apikey, query)
+        total_query = total_query + max_results
 
 
 
@@ -415,4 +420,5 @@ if __name__ == "__main__":
     db.create_all()
     # LongLat()
     script, query = argv
-    book_database_seeding(google_api_key, apikey, query)
+    command_line_query_loop()
+    # book_database_seeding(google_api_key, apikey, query)
