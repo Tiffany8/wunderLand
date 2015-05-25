@@ -43,22 +43,23 @@ def search_for_books():
 
     #query for books associated with place within 100mi
     #returns a list of book objects
-    jsonify_search_result_list = [radius, user_location_query]
-    # book_obj_list = Location.get_books_associated_with_location(radius, user_location_query)
-    # #for loop to pull out the attributes
-    # for book_object in book_obj_list:
-    #     authorlist = []
-    #     if book_object.authors:
-    #         for author in book_object.authors:
-    #             authorlist.append(author.author_name)
-    #     book_dict = {}
-    #     book_dict["title"] = book_object.title
-    #     book_dict["subtitle"] = book_object.subtitle
-    #     book_dict["authors"] = ", ".join(authorlist)
-    #     book_dict["description"] = book_object.description
-    #     book_dict["thumbnailUrl"] = book_object.thumbnail_url
-    #     book_dict["previewLink"] = book_object.preview_link
-    #     jsonify_search_result_list.append(book_dict)
+    jsonify_search_result_list = []
+    book_obj_list = Location.get_books_associated_with_location(radius, user_location_query)
+    #for loop to pull out the attributes
+    for book_object in book_obj_list:
+        authorlist = []
+        if book_object.authors:
+            for author in book_object.authors:
+                authorlist.append(author.author_name)
+        book_dict = {}
+        book_dict["title"] = book_object.title
+        book_dict["subtitle"] = book_object.subtitle
+        book_dict["authors"] = ", ".join(authorlist)
+        book_dict["description"] = book_object.description
+        book_dict["thumbnailUrl"] = book_object.thumbnail_url
+        book_dict["previewLink"] = book_object.preview_link
+        jsonify_search_result_list.append(book_dict)
+        print book_dict
     #put them in a dictionary
     #append each dictionary to a list
     #jsonify that list of dictionaries
