@@ -1,3 +1,4 @@
+import pprint
 
 from flask_sqlalchemy import SQLAlchemy
 # from SQLAlchemy import Numberic
@@ -7,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 db = SQLAlchemy()
 import geocoder
-
+from math import radians, sin, cos, sqrt, asin
 import sys;
 reload(sys);
 sys.setdefaultencoding("utf8")
@@ -124,18 +125,25 @@ class Location(db.Model):
     city_county = db.Column(db.String(100), nullable=True)
     state = db.Column(db.String(100), nullable=True)
     country = db.Column(db.String(100), nullable=True)
-    latitude = db.Column(db.Integer, nullable=True)
-    longitude = db.Column(db.Integer, nullable=True)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
 
     @classmethod
     def get_books_associated_with_location(cls, radius,location):
         """Search by city and state and get back books associated with that location."""
 
         # location = city + ", " + state, + ", " + country
-        location_obj = geocoder.google(location)
-        latlong = location_obj.latlng
-        latitude = latlong[0]
-        longitude = latlong[1]
+
+        ##Commenting out while at quota limit:
+        # location_obj = geocoder.google(location)
+        # latlong = location_obj.latlng
+        # print latlong
+        # latitude = latlong[0]
+        # longitude = latlong[1]
+
+        #hard coded LA cordinates for testing:
+        latitude = 34.0500
+        longitude = -118.2500
 
         #I'm setting the default radius to 100 miles
         radius = float(radius)
@@ -151,26 +159,63 @@ class Location(db.Model):
             .filter(cls.longitude >= long_range[0], cls.longitude <= long_range[1] )\
             .filter(cls.latitude >= lat_range[0], cls.latitude <= lat_range[1])\
             .all()
-        alist = []
+        loc_obj_dist_dict = {}
         #for each location instance, return a list of books in db associated within the set range
         for location_object in range_list:
             books_obj_list = location_object.books
+            distance = Location.get_distance_between_two_locations(location_object.latitude, location_object.longitude, 
+                latitude, longitude)
             #could also return a list of book objects -rather than a list of books
             #this will be more important to return for the server file, but for now
             #am just returning a list of book titles::
 
             for book_obj in books_obj_list:
-                alist.append(book_obj)
-                books_within_radius_list.append(book_obj.title)
+                if book_obj not in loc_obj_dist_dict:
+                    loc_obj_dist_dict[book_obj] = distance
+                 
         #important to turn the list into a set in order to avoid getting book titles
         #multiple times when a book is associated with multiple places within a radius
-        unique_books_list = list(set(books_within_radius_list))
-        # books_within_radius_list.append(location_object.books.)
-        # return ", ".join(unique_books_list)
-        return list(set(alist))
+        
+        pprint.pprint(loc_obj_dist_dict)
+
+        sorted_ = sorted(loc_obj_dist_dict, key=lambda b: (loc_obj_dist_dict[b], b.title))
+
+        pprint.pprint(sorted_)
+
+        return sorted_
 
 
+    @classmethod   
+    def get_distance_between_two_locations(cls, latitude1, longitude1, latitude2, longitude2):
 
+        """Pass in a location2 to measure the distance between that location and 
+        an instnace of a location.  This equation is the haversine formula.  Harversine is an equation 
+        important in navigation, giving great-circle distances between two points on a sphere from their 
+        longitudes and latitudes.  
+        http://rosettacode.org/wiki/Haversine_formula
+        """
+        ## Since this is being used within the above class method (get_books_associated_with_location),
+        ## I will have alrady calculated the lat and long for the location in question, so I won't need
+        ## to use the geocoder library to find the lat/long (see below), but I'm saving the lines of code 
+        ## as backup.
+        # latlon2 = geocoder.google(location2).latlng #returns a list with the latitude and longitude, respectively
+        # print latlon2
+        # latitude2 = latlon2[0]
+        # longitude2 = latlon2[1]
+        R = float(3959) # This is Earth's radius in miles;radius in kilometers is 6372.8
+
+        #convert decimal degress to radians
+        deltaLat = radians(latitude2 - latitude1)
+        deltaLon = radians(longitude2 - longitude1)
+        #haversine formula
+        latitude1 = radians(latitude1)
+        latitude2 = radians(latitude2)
+
+        a = sin(deltaLat/2)**2 + cos(latitude1)*cos(latitude2)*sin(deltaLon/2)**2
+        c = float(2*asin(sqrt(a)))
+        distance = R * c
+
+        return distance #returns the distance in miles
 
 
 

@@ -31,12 +31,14 @@ import sys
 from apiclient.discovery import build
 
 import geocoder
+from random_words import RandomWords
+
 
 # Note: you must run `source secrets.sh` before running this file
 # to make sure these environmental variables are set.
 
 #Maximum number of results to return. (integer, 0-40)
-MAX_RESULTS = 40
+MAX_RESULTS = 20
 #Index of the first result to return (starts at 0) (integer, 0+)
 START_INDEX = 0
 ## last stopped after seeding at index 220 for 'california subject:"fiction"'
@@ -45,6 +47,7 @@ START_INDEX = 0
 #books - 200
 #subject:fiction -- 240
 #pulitzer prize winning books -120
+RW = RandomWords()
 
 #remember to run source secrets.sh in order to access this environmental variable
 # API provided from OS environment dictionary
@@ -122,20 +125,20 @@ def create_book_author_instance(response):
                 title = book_dict.get('volumeInfo', {}).get('title')
                 print "The title: ", title
                 subtitle = book_dict.get('volumeInfo', {}).get('subtitle')
-                print "subtitle: ", subtitle
+                # print "subtitle: ", subtitle
                 bookauthors = book_dict.get('volumeInfo', {}).get('authors')
                 print "Authors: ", bookauthors
                 if book_dict.get('volumeInfo').get('categories'):
                     categories = book_dict.get('volumeInfo').get('categories')
                 else:
                     categories = None
-                print "Categories: ", categories
+                # print "Categories: ", categories
                 mainCategory = book_dict.get('volumeInfo').get('mainCategory')
-                print "Main Category", mainCategory
+                # print "Main Category", mainCategory
                 description = book_dict.get('volumeInfo', {}).get('description')
-                print "Description: ", description
+                # print "Description: ", description
                 thumbnail = book_dict.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
-                print "Thumbnail link: ", thumbnail
+                # print "Thumbnail link: ", thumbnail
 
                 publishedDate_unformated = book_dict.get('volumeInfo', {}).get('publishedDate')
                 if publishedDate_unformated:
@@ -180,6 +183,9 @@ def create_book_author_instance(response):
                         print "instances of author created"
                     if categories:
                         for item in categories:
+                            #some categories are longer than 40 characeters and causing breaks in seeding loop
+                            if len(item) > 40:
+                                item = item[:40]
                             category_instance = Category(category = item)
                             if not Category.query.filter_by(category = item).all():
                                 db.session.add(category_instance)
@@ -315,7 +321,7 @@ def create_location_instance(list_tuples_commknow_isbn):
                                 book.first_words = first_words
         except:
             print "Error! Probably parsing..."
-def LongLat():
+def LatLong():
 
     location_obj_list = Location.query.filter(Location.latitude.is_(None)).all()
     # print location_obj_list
@@ -325,8 +331,10 @@ def LongLat():
     for place in location_obj_list:
         if not place.city_county:
             location = place.state + ", " + place.country
+            print location
         else:
             location = place.city_county + ", " + place.state
+            print location
 
         try:
             location_obj = geocoder.google(location)
@@ -392,13 +400,29 @@ def LongLat():
 
 
 def command_line_query_loop():
-    max_results = 40
+    max_results = 20
     total_query = 0
-    while total_query < 500:
-        book_database_seeding(google_api_key, apikey, query)
-        total_query = total_query + max_results
+    queries = []
+    file = open("listofbooks.txt").read()
+    authors_list = file.split("\n")
+    while total_query < 200:
+        for author in authors_list:
+            query = ""
+            name = author[:-9].split()
+            for a_name in name:
+                query = query + "inauthor:" + a_name + " "
+            print query
+            book_database_seeding(google_api_key, apikey, query)
+            total_query = total_query + max_results
+            queries.append(query)
+        print queries
 
-
+# while total_query < 300:
+#         query = RW.random_word()
+#         book_database_seeding(google_api_key, apikey, query)
+#         total_query = total_query + max_results
+#         queries.append(query)
+#     print queries
 
 # def store_text_common_knowledge(work_common_knowledge_utf8, isbn):
     # """This function runs through the get_LT_book_info(),
@@ -418,7 +442,8 @@ if __name__ == "__main__":
     connect_to_db(app)
 
     db.create_all()
-    # LongLat()
-    script, query = argv
+    # LatLong()
+
+    script = argv
     command_line_query_loop()
     # book_database_seeding(google_api_key, apikey, query)

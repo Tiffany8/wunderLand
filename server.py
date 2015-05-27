@@ -44,7 +44,9 @@ def search_for_books():
     #query for books associated with place within 100mi
     #returns a list of book objects
     jsonify_search_result_list = []
+    ##hard code with LA cordinates due to quota limit:
     book_obj_list = Location.get_books_associated_with_location(radius, user_location_query)
+    print book_obj_list
     #for loop to pull out the attributes
     for book_object in book_obj_list:
         authorlist = []
@@ -59,19 +61,13 @@ def search_for_books():
         book_dict["thumbnailUrl"] = book_object.thumbnail_url
         book_dict["previewLink"] = book_object.preview_link
         jsonify_search_result_list.append(book_dict)
-        print book_dict
-    #put them in a dictionary
-    #append each dictionary to a list
-    #jsonify that list of dictionaries
-    #return the jsonified
+        # print book_dict
+    # print jsonify_search_result_list
     print "search complete"
     # user_location_query, jsonify_search_result_list = jsonList_query
     return jsonify(name = jsonify_search_result_list)
 
-# @app.route("/search")
-# def displayResults():
-    
-#     return render_template("searchresults.html")
+
 
 
 

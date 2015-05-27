@@ -6,7 +6,7 @@
 <form class="search-for-books" id="user_book_query">
 	<div class="search-for-books">
 		<label for="search-input">
-			<input type="text" name="search-input">
+			<input id="search-input" type="text" name="search-input">
 		</label>
 		<label for="radius">radius</label>
 			<select name="radius">
@@ -18,7 +18,7 @@
 	</div>
 	<button id="book-search-submit-button" class="book-search" type="submit">search</button>
 </form>
-
+<div id='results-div' class="book-search-results"></div>
 <div id='book-result-div' class="book-search-results"></div>
 
 {% endblock %}
