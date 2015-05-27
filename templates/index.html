@@ -1,24 +1,50 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>wunderLand</h1>
+<div class="container">
 
-<form class="search-for-books" id="user_book_query">
-	<div class="search-for-books">
-		<label for="search-input">
-			<input id="search-input" type="text" name="search-input">
-		</label>
-		<label for="radius">radius</label>
-			<select name="radius">
-				<option value="25">25 mi</option>
-				<option value="50">50 mi</option>
-				<option value="100">100 mi</option>
-				<option value="200">200 mi</option>
-			</select>
-	</div>
-	<button id="book-search-submit-button" class="book-search" type="submit">search</button>
-</form>
-<div id='results-div' class="book-search-results"></div>
-<div id='book-result-div' class="book-search-results"></div>
+		<form class="form-inline" id="user_book_query">
+			<fieldset>
+			<legend class="col-sm-4">where are you going?</legend>
+
+			<div class="form-group">
+				<label for="search-input" class="sr-only"></label>
+				<div class="col-sm-4">
+					<input type="text" class="form-control" id="search-input" name="search-input" placeholder="location">
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-sm-4">
+				<!-- <label for="radius">radius</label> -->
+				<select class="form-control" name="radius">
+					<option value="25">25 mi</option>
+					<option value="50">50 mi</option>
+					<option value="100">100 mi</option>
+					<option value="200">200 mi</option>
+					<div class="input-group-addon">miles</div>
+				</select>
+				</div>	
+			</div>
+
+			<div class="form-group">
+      			<div class="col-sm-4">
+				<button id="book-search-submit-button" class="btn btn-sm btn-success" type="submit">get books &raquo;</button>
+				</div>
+			</div>
+
+		</fieldset>
+		</form>
+
+
+</div>
+
+
+
+
+		<div id='results-div' class="book-search-results"></div>
+		<div id='book-result-div' class="book-search-results"></div>
+
 
 {% endblock %}
+

@@ -1,54 +1,69 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>wunderLand</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/static/projectwun.css">
-  <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>wunderLand</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.4/paper/bootstrap.min.css">
 </head>
 <body>
-
-
-
-        <!-- show if logged in or not -->
-        <div class="logstatus">
-
-        </div>
-
-        <!-- Show flashed messages -->
-        <div class="flash">
-        {% with messages = get_flashed_messages() %}
-            {% for message in messages %}
-                <div class="alert alert-warning">{{ message }}</div>
-            {% endfor %}
-        {% endwith %}
-        </div>
-
-
-        <hr>
-
-            {% block content %} put your content here {% endblock %}
-
-        <div class="footer">
-            <table>
-                <tr>
-                    <td><a id="home" href="/">Home</a></td>
+<div class="container">
+        <!-- Static navbar -->
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button"
+                        class="navbar-toggle collapsed"
+                        data-toggle="collapse"
+                        data-target="#navbar"
+                        aria-expanded="false"
+                        aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">wunderLand</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">home</a></li> 
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
                     {% if "logged_in_user_id" in session %}
-                    <td><a id="my_page" href="/users/{{ session["logged_in_user_id"] }}">passport</a></td>
-                    <td><a id="movies" href="/movies">Movie List</a></td>
-                    <td><a href="/logout">log out</a></td>
+                    <li><a href="/home/{{ session["logged_in_user_id"] }}">passport</a></li>
                     {% else %}
-                    <td><a href="/login">log in</a></td>
+                    <li><a href="#">log out</a></li>
                     {% endif %}
-                </tr>
-            </table>
+                </ul>
+            </div>
         </div>
-    <script src="/static/projectwun.js"></script>
-    </body>
+    </nav>
+</div>
+
+    <!-- Show flashed messages -->
+    <div class="flash">
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="alert alert-warning">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+    </div>
+
+
+    <hr>
+    
+        {% block content %} put your content here {% endblock %}
+  
+
+    <div class="footer">
+        <script src="http://code.jquery.com/jquery.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/paper/bootstrap.min.js"></script>
+        <script src="/static/projectwun.js"></script>
+    </div>
+    
+
+</body>
 
 </html>

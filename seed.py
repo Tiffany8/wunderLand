@@ -61,15 +61,13 @@ def book_database_seeding(google_api_key, apikey, query):
     isbn_list = create_book_author_instance(response)
     list_tuples_commknow_isbn = get_LT_book_info(apikey, isbn_list)
     create_location_instance(list_tuples_commknow_isbn)
-    LongLat()
+    LatLong()
     db.session.commit()
     print "Querying and seeding complete"
 
 
 def google_book_search(query):
     """Using the Google Books API to query for books and store information about them."""
-
-    print query
 
     # The apiclient.discovery.build() function returns an instance of an API service
     # object that can be used to make API calls. The object is constructed with
@@ -88,6 +86,7 @@ def google_book_search(query):
     request = service.volumes().list(source='public',
                                     orderBy='relevance',
                                     printType='books',
+                                    langRestrict='en',
                                     q=query,
                                     startIndex=START_INDEX,
                                     maxResults=MAX_RESULTS,
@@ -150,8 +149,11 @@ def create_book_author_instance(response):
                         else:
                             publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m")
                     except:
+    
                         print "Publication date formating errors for: ", title
-                print "Publication Date: ", publishedDate
+                    # print "Publication Date: ", publishedDate
+                else:
+                    publishedDate = None
 
                 previewLink = book_dict.get('volumeInfo', {}).get("previewLink")
                 print "PreviewLink: ", previewLink
@@ -339,6 +341,8 @@ def LatLong():
         try:
             location_obj = geocoder.google(location)
         except:
+            place.latitude = float('NaN')
+            place.longitude = float('NaN')
             print "This location, ", location, "could not be found."
         else:
             latlong = location_obj.latlng
@@ -417,6 +421,8 @@ def command_line_query_loop():
             queries.append(query)
         print queries
 
+
+## Query I used to seed database by searching for random words::
 # while total_query < 300:
 #         query = RW.random_word()
 #         book_database_seeding(google_api_key, apikey, query)

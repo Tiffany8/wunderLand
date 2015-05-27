@@ -32,11 +32,11 @@ function getBookResults(evt) {
 
   $.get(url, function(json) {
     console.log(json.name);
-    $("#results-div").append("<p>Found " + json.name.length + " books associated with " + $("#search-input").val() + ".</p>");
+    $("#results-div").append("<div class='container'><p>Found " + json.name.length + " books associated with " + $("#search-input").val() + ".</p></div>");
     // $("#user-location-query").append($("#user_book_query").val());
     for (var book=0; book <json.name.length; book++) {
     //     console.log(book);
-        $("#book-result-div").append("<div><a href='" + json.name[book].previewLink + "' target='_blank'>" + "<img src='" + json.name[book].thumbnailUrl + "'></a>");
+        $("#book-result-div").append("<div class='container'><div class='jumbotron'><a href='" + json.name[book].previewLink + "' target='_blank'>" + "<img src='" + json.name[book].thumbnailUrl + "'></a></div></div>");
       }
   });
 
