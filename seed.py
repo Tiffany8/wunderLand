@@ -61,7 +61,7 @@ def book_database_seeding(google_api_key, apikey, query):
     isbn_list = create_book_author_instance(response)
     list_tuples_commknow_isbn = get_LT_book_info(apikey, isbn_list)
     create_location_instance(list_tuples_commknow_isbn)
-    LatLong()
+    get_longitude_latitude_of_location()
     db.session.commit()
     print "Querying and seeding complete"
 
@@ -323,36 +323,69 @@ def create_location_instance(list_tuples_commknow_isbn):
                                 book.first_words = first_words
         except:
             print "Error! Probably parsing..."
-def LatLong():
+def get_longitude_latitude_of_location():
+    """Query the database for locations with a latitude as None and 
+    find use the geocoder location to get the longitude and latitude of the location.
+    If the location does not exist or is fictional, then the lat/longs are set to
+    float('Nan'). """
 
+    #### To NOTE:::: geocoder.osm (Open Street Maps) returns a different library 
+    #### than the geocoder.google -- take note of how the lat/longs are returned and
+    #### the syntax needed to retrieve the info (https://geocoder.readthedocs.org/en/latest/)
     location_obj_list = Location.query.filter(Location.latitude.is_(None)).all()
     # print location_obj_list
     # dict_city_state = {l.state: l.city_county for l in usa_cities_obj_list}
     location_dict= {}
 
     for place in location_obj_list:
+        # try:
         if not place.city_county:
             location = place.state + ", " + place.country
             print location
         else:
             location = place.city_county + ", " + place.state
             print location
+        location_obj = geocoder.osm(location)
+        print location, location_obj
 
-        try:
-            location_obj = geocoder.google(location)
-        except:
-            place.latitude = float('NaN')
-            place.longitude = float('NaN')
-            print "This location, ", location, "could not be found."
-        else:
-            latlong = location_obj.latlng
-            if latlong:
-                place.latitude  = latlong[0]
-                place.longitude = latlong[1]
-                db.session.commit()
+        # except:
+            # place.latitude = float('NaN')
+            # place.longitude = float('NaN')
+            # print "This location, ", location, "could not be found."
+
+        # else:
+        latlong = location_obj.geometry.get("coordinates", (float('NaN'), float('NaN')))
+        place.latitude  = latlong[1]
+        place.longitude = latlong[0]
+    db.session.commit()
 
 
 
+
+    #### For geocoder.google::
+    # for place in location_obj_list:
+        
+    #     if not place.city_county:
+    #         location = place.state + ", " + place.country
+    #         print location
+    #     else:
+    #         location = place.city_county + ", " + place.state
+    #         print location
+            
+    #     try:
+    #         location_obj = geocoder.google(location)
+
+    #     except:
+    #         place.latitude = float('NaN')
+    #         place.longitude = float('NaN')
+    #         print "This location, ", location, "could not be found."
+
+    #     else:
+    #         latlong = location_obj.latlng
+    #         if latlong:
+    #             place.latitude  = latlong.[0]
+    #             place.longitude = latlong.[1]
+    #             db.session.commit()
 
 
     # usa_cities_obj_list = Location.query.filter_by(country='USA').filter(Location.city_county.isnot(None)).all()
@@ -404,7 +437,7 @@ def LatLong():
 
 
 def command_line_query_loop():
-    max_results = 20
+    max_results = MAX_RESULTS
     total_query = 0
     queries = []
     file = open("listofbooks.txt").read()
@@ -448,7 +481,7 @@ if __name__ == "__main__":
     connect_to_db(app)
 
     db.create_all()
-    # LatLong()
+    # get_longitude_latitude_of_location()
 
     script = argv
     command_line_query_loop()

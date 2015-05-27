@@ -36,13 +36,40 @@ function getBookResults(evt) {
     // $("#user-location-query").append($("#user_book_query").val());
     for (var book=0; book <json.name.length; book++) {
     //     console.log(book);
-        $("#book-result-div").append("<div class='container'><div class='jumbotron'><a href='" + json.name[book].previewLink + "' target='_blank'>" + "<img src='" + json.name[book].thumbnailUrl + "'></a></div></div>");
+        $("#book-result-div").append("<div class='container'><div class='jumbotron'><img id='bookcover' src='" + json.name[book].thumbnailUrl + "'></div></div>");
+        
+
       }
   });
 
 }
 
+// $("#book-result-div").on("click", function() {
+//    $('#imagepreview').attr('src', $('#bookcover').attr('src'));
+//    $('#imagemodal').modal('show');
+   
+// });
+// //Modal
+// function getBookModal(evt) {
+
+//   var url = "/search?" + $('#user_book_query').serialize();
+
+//   $.get(url, function(json) {
+//   for (var book=0; book <json.name.length; book++) {
+//   $("#book-result-div").on("click", function() {
+//   $('#myModalLabel').append(json.name[book].title);
+//   $('#imagepreview').attr('src', $('#bookcover').attr('src'));
+//   $('#author').append("Author: " + json.name[book].authors);
+//   $('#description').append("Description: " + json.name[book].description);
+//   $('#imagemodal').modal('show');
+//   });
+// }
+
 $('#user_book_query').on('submit', getBookResults);
+// $("#book-result-div").on("click", getBookModal);
+
+
+
 //PAR 2: SHOW number of books and user query
 
 // function showBookNumber(evt) {
