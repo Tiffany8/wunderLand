@@ -7,6 +7,7 @@ import string
 import re
 from nltk.corpus import stopwords
 
+
 def main_func():
 	list_of_book_objects = Book.query.filter(Book.title.ilike('war%')).all()
 
@@ -20,15 +21,16 @@ def main_func():
 			print "#" * 20
 			tokens_list_filtered = remove_stopwords(tokens_list)
 			print "filtered tokens list", len(tokens_list_filtered), tokens_list_filtered
+			print "#" * 20
+			stemmed_tokens = stem_tokens(tokens_list_filtered)
+			print "stemmed tokens", stemmed_tokens
 			print "#" * 40
 
 def get_tokens(book_obj):
 
 		#remove all punctuation except ' and - and lowercases words
 		book_descrip_no_punc = re.split(r"[^\w]", book_obj.description.lower()) 
-		#or should I remove all punctuation, including apostrophes and dashes?
-		# description = book_obj.description.lower()
-		# book_descrip_no_punc = description.translate(None, string.punctuation)
+	
 		return book_descrip_no_punc
 
 def remove_stopwords(tokens_list):
@@ -36,6 +38,12 @@ def remove_stopwords(tokens_list):
 	tokens_list_filtered = [word for word in tokens_list if not word in stopwords.words('english')]
 	
 	return tokens_list_filtered
+
+def stem_tokens(tokens_list_filtered):
+	stemmer = nltk.stem.porter.PorterStemmer()
+	stemmed_tokens = [stemmer.stem_word(word) for word in tokens_list_filtered]
+	return stemmed_tokens
+
 
 if __name__ == "__main__":
     connect_to_db(app)
