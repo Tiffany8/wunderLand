@@ -250,23 +250,27 @@ def create_location_instance(list_tuples_commknow_isbn):
                 #TO DO -- how can I make this code more efficient?
                 #if I put the db.session.add() outside of the if loop, then there will be
                 #instances where location does not exist and I will get an error
-
-                if len(place_list) == 2:
-                    location = Location(city_county = None,
-                                        state = place_list[0],
-                                        country = place_list[1])
-                    db.session.add(location)
-                    book.locations.append(location)
-                elif len(place_list) == 3:
-                    location = Location(city_county = place_list[0],
-                                        state = place_list[1],
-                                        country = place_list[2])
-                    db.session.add(location)
-                    book.locations.append(location)
-                elif len(place_list) == 4:
-                    location = Location(city_county = place_list[0] + ", "+  place_list[1],
-                                        state = place_list[2],
-                                        country = place_list[3])
+                if "D.C." in place_list:
+                    location = Location(city_county = place_list[:-1],
+                                        state = None,
+                                        country = place_list[-1])
+                else:
+                    if len(place_list) == 2:
+                        location = Location(city_county = None,
+                                            state = place_list[0],
+                                            country = place_list[1])
+                        db.session.add(location)
+                        book.locations.append(location)
+                    elif len(place_list) == 3:
+                        location = Location(city_county = place_list[0],
+                                            state = place_list[1],
+                                            country = place_list[2])
+                        db.session.add(location)
+                        book.locations.append(location)
+                    elif len(place_list) == 4:
+                        location = Location(city_county = place_list[0] + ", "+  place_list[1],
+                                            state = place_list[2],
+                                            country = place_list[3])
                     db.session.add(location)
                     book.locations.append(location)
 
@@ -343,9 +347,13 @@ def get_longitude_latitude_of_location():
             location = place.state + ", " + place.country
             print location
         else:
-            location = place.city_county + ", " + place.state
-            print location
-        location_obj = geocoder.osm(location)
+            try:
+                location = place.city_county + ", " + place.state
+                print location
+            except TypeError:
+                location = place.city_county, ", ", place.state
+
+        location_obj = geocoder.google(location)
         print location, location_obj
 
         # except:
@@ -386,6 +394,28 @@ def get_longitude_latitude_of_location():
     #             place.latitude  = latlong.[0]
     #             place.longitude = latlong.[1]
     #             db.session.commit()
+
+    #### For geocoder.osm:::
+       # for place in location_obj_list:
+       #  # try:
+       #  if not place.city_county:
+       #      location = place.state + ", " + place.country
+       #      print location
+       #  else:
+       #      location = place.city_county + ", " + place.state
+       #      print location
+       #  location_obj = geocoder.osm(location)
+       #  print location, location_obj
+
+       #  # except:
+       #      # place.latitude = float('NaN')
+       #      # place.longitude = float('NaN')
+       #      # print "This location, ", location, "could not be found."
+
+       #  # else:
+       #  latlong = location_obj.geometry.get("coordinates", (float('NaN'), float('NaN')))
+       #  place.latitude  = latlong[1]
+       #  place.longitude = latlong[0]
 
 
     # usa_cities_obj_list = Location.query.filter_by(country='USA').filter(Location.city_county.isnot(None)).all()
@@ -451,6 +481,10 @@ def command_line_query_loop():
             print query
             book_database_seeding(google_api_key, apikey, query)
             total_query = total_query + max_results
+            print total_query
+            print "#" * 40
+            print "#" * 40
+            print "#" * 40
             queries.append(query)
         print queries
 

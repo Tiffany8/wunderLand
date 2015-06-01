@@ -40,15 +40,23 @@ function getBookResults(evt) {
         
 
       }
+      $(".jumbotron").click(function() {
+    console.log("hello")
+   // $('#imagepreview').attr('src', $('#bookcover').attr('src'));
+   $('#imagemodal').show();
+   
+});
+
   });
 
 }
 
-// $("#book-result-div").on("click", function() {
-//    $('#imagepreview').attr('src', $('#bookcover').attr('src'));
-//    $('#imagemodal').modal('show');
-   
+
+//       $( ".jumbotron" ).click(function() {
+//   alert( "Handler for .click() called." );
 // });
+
+
 // //Modal
 // function getBookModal(evt) {
 
@@ -65,27 +73,10 @@ function getBookResults(evt) {
 //   });
 // }
 
-$('#user_book_query').on('submit', getBookResults);
+
 // $("#book-result-div").on("click", getBookModal);
 
 
-
-//PAR 2: SHOW number of books and user query
-
-// function showBookNumber(evt) {
-//
-// }
-//
-// function showWeather(evt) {
-//     evt.preventDefault();
-//     $('#weather-info').empty();
-//
-//     var url = "/weather?zipcode=" + $("#zipcode-field").val();
-//     $.get(url, function(data){
-//        for (item in data){
-//             $('#weather-info').append("<p><b>" + item.toUpperCase() + ":</b> " + data[item] + "</p>");
-//         }
-//     });
-// }
-//
-// $("#weather-form").on('submit', showWeather);
+$(document).ready(function () {
+  $('#user_book_query').on('submit', getBookResults);
+})
