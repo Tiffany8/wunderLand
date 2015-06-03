@@ -100,16 +100,16 @@ def stem_tokens(token_list_filtered):
 	return stemmed_tokens
 
 def cosine_similarity(bookobj_tokens_dict):
-	# print type(bookobj_tokens_dict)
+	
+	#####################################
+	### TFIDF and Document Similarity ###
+	#####################################
 	books_dict = bookobj_tokens_dict.items()
-	# print books_dict
-	# print type(books_dict)
+	
 	titles = [book[0].title.encode('utf-8') for book in books_dict]
-	# print "titles, ", titles
+	
 	description_tokens = [book[0].description for book in books_dict]
-	# print "description tokens", description_tokens
 
-	# print "description, ", description_tokens
 	# # max_df -- max frequency within document a fiven feaeture can have to be in matrix;
 	# # if > 80% in a document, carries less meaning
 	# # min_idf --if an integer, then the term has to be in at least 'X' integer documents to be 
@@ -118,40 +118,42 @@ def cosine_similarity(bookobj_tokens_dict):
 	tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000,
                                  min_df=0.2, stop_words='english',
                                  use_idf=True, tokenizer=get_tokens, ngram_range=(1,3))
-	# print "tfidf vectorizer, ", tfidf_vectorizer
-	# print "stemmed tokens", get_tokens
-	# # tdidf = TfidfVectorizer(tokenizer=stem_tokens, stop_words='english')
-	# # tfs = tfidf.fit_transform(token_dict.values())
+	
+	
 	tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
-	# print "tfidf_matrix", tfidf_matrix
-	# print "tfidf matrix shape ", tfidf_matrix.shape
-	# # return ((tfidf_vectorizer * tfidf_vectorizer.T).A)[0,1]
+
 	# # terms is a list of features used in the tf-idf matrix
 	terms = tfidf_vectorizer.get_feature_names()
 	print "terms, ", terms
+
+	######################
+	### KMeans Cluster ###
+	######################
 	from sklearn.metrics.pairwise import cosine_similarity
-	# print cosine_similarity(tfidf_matrix)
+	# # dist is defined as 1 - the cosine similarity of each document. Cosine similarity is measured against 
+	# #the tf-idf matrix and can be used to generate a measure of similarity between each document and the 
+	# #other documents in the corpus (each synopsis among the synopses). Subtracting it from 1 provides 
+	# #cosine distance which I will use for plotting on a euclidean (2-dimensional) plane.
 	dist = cosine_similarity(tfidf_matrix)
-	# print "distance, ", dist
-	num_clusters = 6
+	
+	num_clusters = 6 # if this number is changed, update the cluster_color dictionary
 	km = KMeans(n_clusters = num_clusters)
-	# # print "kmeans, ", km
 	km.fit(tfidf_matrix)
 	clusters = km.labels_.tolist()
 	print "clusters, ", clusters
 	joblib.dump(km, 'doc_cluster.pkl')
 	km = joblib.load('doc_cluster.pkl')
-	# print "km joblib dump, ", km
 	clusters = km.labels_.tolist()
-	# print "clusters after pkl dump, ", clusters
 	books = {'title':titles, 'synopsis':description_tokens,'cluster':clusters}
 	print "books, ", books
 	frame = pd.DataFrame(books,index=[clusters],columns=['title','cluster'])
-	# print "frame, ", frame
 	frame['cluster'].value_counts()
 	grouped = frame['title'].groupby(frame['cluster'])
-	# print "grouped, ", grouped
+	
 
+	#############################
+	### Top Terms Per Cluster ###
+	#############################
 	print "Top terms per cluster:"
 	print 
 	order_centroids = km.cluster_centers_.argsort()[:, ::-1]
@@ -196,49 +198,46 @@ def cosine_similarity(bookobj_tokens_dict):
 		print
 	print "graph values ", graph_values
 
+	#################################
+	### Multi-Dimensional Scaling ###
+	#################################
+
 	# # convert the dist matrix into a 2-dimensional array using MDS
 	MDS()
 
-	#convert two components while plotting points in 2-D plane
-	#'precomputed' because provide a distance matrix
-	#will also specify random_state so the plot is reproducible
+	# #convert two components while plotting points in 2-D plane
+	# #'precomputed' because provide a distance matrix
+	# #will also specify random_state so the plot is reproducible
 	mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
 	print "mds, ", mds
 	pos = mds.fit_transform(dist) # shape (n_compoents, n_samples)
 	print "pos, ", pos
 	xs, ys = pos[:, 0], pos[:, 1]
-	# print "xs, ", xs
-	# print "ys, ", ys
-	# print 
-	# print
 
-	# #set up visualization
+	#################################
+	### Visualizing Book Clusters ###
+	#################################
 
 	# #set up colors per clusters using a dict
 	cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', 5:'#F7EC45'}
 
-	#set up cluster names using a dict
+	# #set up cluster names using a dict
 	graph_values = [", ".join(term_list) for term_list in graph_values]
 	cluster_names = dict(zip(graph_keys, graph_values))
 	print "cluster names dictionary, ", cluster_names
-	# cluster_names = {0: 'Family, home, war', 
-#                1: 'Police, killed, murders', 
-#                2: 'Father, New York, brothers', 
-#                3: 'Dance, singing, love', 
-#                4: 'Killed, soldiers, captain'}
-# 		show()
+
 	df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=titles))
 	
-	#group by clusters
+	# #group by clusters
 	groups = df.groupby('label')
 
-	#set up plot
+	# #set up plot
 	fig, ax = plt.subplots(figsize=(17,9)) #set size
 	ax.margins(0.05) # optional, just adds 5% padding to auto scaling
 
-	#iterate through groups to layer the plot
-	#note the use of cluster_name and cluster_color dicts with the 'name' lookup to return 
-	#appropriate color/label
+	# #iterate through groups to layer the plot
+	# #note the use of cluster_name and cluster_color dicts with the 'name' lookup to return 
+	# #appropriate color/label
 	for name, group in groups:
 		ax.plot(group.x, group.y, marker='o', linestyle='', ms=12,
 			label=cluster_names[name], color=cluster_colors[name],
