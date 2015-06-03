@@ -21,6 +21,10 @@ import codecs
 from sklearn import feature_extraction
 from sklearn.externals import joblib
 import mpld3
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from sklearn.manifold import MDS
+from sklearn.metrics.pairwise import cosine_similarity
 #filter out books with no location and no description
 #generate a dictionary of ALL token words and values => book_objs with those words in description
 #do cosine similiarty only on books that only have tokens in common
@@ -50,7 +54,7 @@ def main_func():
 			bookobj_tokens_dict[book_obj] = stemmed_tokens
 
 	cosine_sim = cosine_similarity(bookobj_tokens_dict)
-	print "consine sim, ", cosine_sim
+	print "cosine sim, ", cosine_sim
 	return cosine_sim
 	
 
@@ -60,7 +64,7 @@ def get_tokens(book_description):
 
 	#remove all punctuation except ' and - and lowercases words
 	book_descrip_no_punc = re.split(r"[^\w]", book_description.lower()) 
-	print "BOOK DESCRIP NO PUNC", book_descrip_no_punc
+	# print "BOOK DESCRIP NO PUNC", book_descrip_no_punc
 	token_list_filtered = remove_stopwords(book_descrip_no_punc)
 	stemmed_tokens = stem_tokens(token_list_filtered)
 	# return book_descrip_no_punc
@@ -89,14 +93,20 @@ def stem_tokens(token_list_filtered):
 
 def cosine_similarity(bookobj_tokens_dict):
 	# print type(bookobj_tokens_dict)
-	sorted_ = sorted(bookobj_tokens_dict.items())
-	# print sorted_
-	# print type(sorted_)
-	titles = [book[0].title.encode('utf-8') for book in sorted_]
+	books_dict = bookobj_tokens_dict.items()
+	# print books_dict
+	# print type(books_dict)
+	titles = [book[0].title.encode('utf-8') for book in books_dict]
 	# print "titles, ", titles
-	description_tokens = [book[0].description for book in sorted_]
+	description_tokens = [book[0].description for book in books_dict]
+	print "description tokens", description_tokens
 
 	# print "description, ", description_tokens
+	# # max_df -- max frequency within document a fiven feaeture can have to be in matrix;
+	# # if > 80% in a document, carries less meaning
+	# # min_idf --if an integer, then the term has to be in at least 'X' integer documents to be 
+	# # considerd. 0.2 means it needs to be in at least 20% of documents
+	# # ngram)range -- means to look at unigrams, bigrams, and trigrams
 	tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000,
                                  min_df=0.2, stop_words='english',
                                  use_idf=True, tokenizer=get_tokens, ngram_range=(1,3))
@@ -105,16 +115,19 @@ def cosine_similarity(bookobj_tokens_dict):
 	# # tdidf = TfidfVectorizer(tokenizer=stem_tokens, stop_words='english')
 	# # tfs = tfidf.fit_transform(token_dict.values())
 	tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
-	# print "tfidf_matrix", tfidf_matrix
-	# print "tfidf matrix shape ", tfidf_matrix.shape
+	print "tfidf_matrix", tfidf_matrix
+	print "tfidf matrix shape ", tfidf_matrix.shape
 	# # return ((tfidf_vectorizer * tfidf_vectorizer.T).A)[0,1]
+	# # terms is a list of features used in the tf-idf matrix
 	terms = tfidf_vectorizer.get_feature_names()
 	print "terms, ", terms
-	# dist = 1 - cosine_similarity(tfidf_matrix)
-	# print "distance, ", dist
+	from sklearn.metrics.pairwise import cosine_similarity
+	# print cosine_similarity(tfidf_matrix)
+	dist = cosine_similarity(tfidf_matrix)
+	print "distance, ", dist
 	num_clusters = 5
 	km = KMeans(n_clusters = num_clusters)
-	# print "kmeans, ", km
+	# # print "kmeans, ", km
 	km.fit(tfidf_matrix)
 	clusters = km.labels_.tolist()
 	print "clusters, ", clusters
@@ -141,7 +154,8 @@ def cosine_similarity(bookobj_tokens_dict):
 	print "total vocab tokenized list, ", totalvocab_tokenized_list
 	vocab_frame = pd.DataFrame({'words': totalvocab_tokenized_list}, index=totalvocab_tokenized_list)
 	print 'there are ' + str(vocab_frame.shape[0]) + ' items in vocab_frame'
-	
+	print "num cluster, ", num_clusters
+	print "values, ", frame.ix
 	for i in range(num_clusters):
 		print "Cluster %d words:" % i
 
@@ -160,6 +174,20 @@ def cosine_similarity(bookobj_tokens_dict):
 		print 
 		print
 
+		MDS()
+
+		#convert two components while plotting points in 2-D plane
+		#'precomputed' because provide a distance matrix
+		#will also specify random_state so the plot is reproducible
+		mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
+		print "mds, ", mds
+		pos = mds.fit_transform(dist) # shape (n_compoents, n_samples)
+		print "pos, ", pos
+		xs, ys = pos[:, 0], pos[:, 1]
+		print "xs, ", xs
+		print "ys, ", ys
+		print 
+		print
 
 
 
@@ -167,4 +195,4 @@ if __name__ == "__main__":
     connect_to_db(app)
     db.create_all()
     main_func()
-    # consine_similarity = cosine_similarity(bookobj_tokens_dict)
+    # cosine_similarity = cosine_similarity(bookobj_tokens_dict)
