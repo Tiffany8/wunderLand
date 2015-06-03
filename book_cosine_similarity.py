@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
+import datetime
 
 # from __future__ import print_function
 import numpy as np
@@ -25,6 +26,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from sklearn.manifold import MDS
 from sklearn.metrics.pairwise import cosine_similarity
+from pylab import *
 #filter out books with no location and no description
 #generate a dictionary of ALL token words and values => book_objs with those words in description
 #do cosine similiarty only on books that only have tokens in common
@@ -33,7 +35,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 def main_func():
-	list_of_book_objects = Book.query.filter(Book.title.ilike('war%')).all()
+	current_time = datetime.datetime.utcnow()
+	onehund_weeks_ago = current_time - datetime.timedelta(weeks=100)
+	list_of_book_objects = Book.query.filter(Book.publication_date > onehund_weeks_ago).all()
+	list_of_book_objects = [book_obj for book_obj in list_of_book_objects if book_obj.locations]
+	# list_of_book_objects = Book.query.filter(Book.title.ilike('war%')).all()
 	print "NUMBER OF BOOKS, ", len(list_of_book_objects)
 	bookobj_tokens_dict = {}
 	for book_obj in list_of_book_objects:
@@ -54,7 +60,7 @@ def main_func():
 			bookobj_tokens_dict[book_obj] = stemmed_tokens
 
 	cosine_sim = cosine_similarity(bookobj_tokens_dict)
-	print "cosine sim, ", cosine_sim
+	# print "cosine sim, ", cosine_sim
 	return cosine_sim
 	
 
@@ -85,7 +91,9 @@ def stem_tokens(token_list_filtered):
 	# print "TOKENS LIST FILTERED", tokens_list_filtered
 	# print "TOKENS LIST FILTERED", type(tokens_list_filtered), len(tokens_list_filtered)
 	stemmer = nltk.stem.porter.PorterStemmer()
-	stemmed_tokens = [stemmer.stem_word(word) for word in token_list_filtered]
+	lemmatizer = nltk.WordNetLemmatizer()
+	# stemmed_tokens = [stemmer.stem_word(word) for word in token_list_filtered]
+	stemmed_tokens = [lemmatizer.lemmatize(word) for word in token_list_filtered]
 	# print "STEMMED TOKENS,", stemmed_tokens
 	stemmed_tokens = filter(None, stemmed_tokens)
 	# print "STEMMED TOKENS 2", stemmed_tokens
@@ -99,7 +107,7 @@ def cosine_similarity(bookobj_tokens_dict):
 	titles = [book[0].title.encode('utf-8') for book in books_dict]
 	# print "titles, ", titles
 	description_tokens = [book[0].description for book in books_dict]
-	print "description tokens", description_tokens
+	# print "description tokens", description_tokens
 
 	# print "description, ", description_tokens
 	# # max_df -- max frequency within document a fiven feaeture can have to be in matrix;
@@ -115,8 +123,8 @@ def cosine_similarity(bookobj_tokens_dict):
 	# # tdidf = TfidfVectorizer(tokenizer=stem_tokens, stop_words='english')
 	# # tfs = tfidf.fit_transform(token_dict.values())
 	tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
-	print "tfidf_matrix", tfidf_matrix
-	print "tfidf matrix shape ", tfidf_matrix.shape
+	# print "tfidf_matrix", tfidf_matrix
+	# print "tfidf matrix shape ", tfidf_matrix.shape
 	# # return ((tfidf_vectorizer * tfidf_vectorizer.T).A)[0,1]
 	# # terms is a list of features used in the tf-idf matrix
 	terms = tfidf_vectorizer.get_feature_names()
@@ -124,8 +132,8 @@ def cosine_similarity(bookobj_tokens_dict):
 	from sklearn.metrics.pairwise import cosine_similarity
 	# print cosine_similarity(tfidf_matrix)
 	dist = cosine_similarity(tfidf_matrix)
-	print "distance, ", dist
-	num_clusters = 5
+	# print "distance, ", dist
+	num_clusters = 6
 	km = KMeans(n_clusters = num_clusters)
 	# # print "kmeans, ", km
 	km.fit(tfidf_matrix)
@@ -133,13 +141,13 @@ def cosine_similarity(bookobj_tokens_dict):
 	print "clusters, ", clusters
 	joblib.dump(km, 'doc_cluster.pkl')
 	km = joblib.load('doc_cluster.pkl')
-	print "km joblib dump, ", km
+	# print "km joblib dump, ", km
 	clusters = km.labels_.tolist()
-	print "clusters after pkl dump, ", clusters
+	# print "clusters after pkl dump, ", clusters
 	books = {'title':titles, 'synopsis':description_tokens,'cluster':clusters}
 	print "books, ", books
 	frame = pd.DataFrame(books,index=[clusters],columns=['title','cluster'])
-	print "frame, ", frame
+	# print "frame, ", frame
 	frame['cluster'].value_counts()
 	grouped = frame['title'].groupby(frame['cluster'])
 	# print "grouped, ", grouped
@@ -156,11 +164,24 @@ def cosine_similarity(bookobj_tokens_dict):
 	print 'there are ' + str(vocab_frame.shape[0]) + ' items in vocab_frame'
 	print "num cluster, ", num_clusters
 	print "values, ", frame.ix
+	# print [i for i in range(num_clusters)]
+	# print [vocab_frame.ix[terms[index].split(' ')].values.tolist()[0][0].encode('utf-8','ignore') for index in order_centroids[i, :3] for i in range(num_clusters)]
+	print order_centroids
+
+	graph_keys = [i for i in range(num_clusters)]
+	graph_values = []
 	for i in range(num_clusters):
 		print "Cluster %d words:" % i
-
-		for ind in order_centroids[i, :6]:
-			print ' %s' % vocab_frame.ix[terms[ind].split(' ')].values.tolist()[0][0].encode('utf-8','ignore')
+		the_terms = []
+		for ind in order_centroids[i, :5]: # top 5 words that are nearest to the cluster centroid
+			
+			graph_terms = vocab_frame.ix[terms[ind].split(' ')].values.tolist()[0][0].encode('utf-8','ignore')
+			the_terms.append(graph_terms)
+			print "graph terms ", graph_terms
+		print "the terms, ", the_terms
+		
+		graph_values.append(the_terms)
+		
 		print
 		print
 		print "Cluster %d titles:" % i
@@ -173,23 +194,68 @@ def cosine_similarity(bookobj_tokens_dict):
 				print ' %s,' % title
 		print 
 		print
+	print "graph values ", graph_values
 
-		MDS()
+	# # convert the dist matrix into a 2-dimensional array using MDS
+	MDS()
 
-		#convert two components while plotting points in 2-D plane
-		#'precomputed' because provide a distance matrix
-		#will also specify random_state so the plot is reproducible
-		mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
-		print "mds, ", mds
-		pos = mds.fit_transform(dist) # shape (n_compoents, n_samples)
-		print "pos, ", pos
-		xs, ys = pos[:, 0], pos[:, 1]
-		print "xs, ", xs
-		print "ys, ", ys
-		print 
-		print
+	#convert two components while plotting points in 2-D plane
+	#'precomputed' because provide a distance matrix
+	#will also specify random_state so the plot is reproducible
+	mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
+	print "mds, ", mds
+	pos = mds.fit_transform(dist) # shape (n_compoents, n_samples)
+	print "pos, ", pos
+	xs, ys = pos[:, 0], pos[:, 1]
+	# print "xs, ", xs
+	# print "ys, ", ys
+	# print 
+	# print
 
+	# #set up visualization
 
+	# #set up colors per clusters using a dict
+	cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', 5:'#F7EC45'}
+
+	#set up cluster names using a dict
+	graph_values = [", ".join(term_list) for term_list in graph_values]
+	cluster_names = dict(zip(graph_keys, graph_values))
+	print "cluster names dictionary, ", cluster_names
+	# cluster_names = {0: 'Family, home, war', 
+#                1: 'Police, killed, murders', 
+#                2: 'Father, New York, brothers', 
+#                3: 'Dance, singing, love', 
+#                4: 'Killed, soldiers, captain'}
+# 		show()
+	df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=titles))
+	
+	#group by clusters
+	groups = df.groupby('label')
+
+	#set up plot
+	fig, ax = plt.subplots(figsize=(17,9)) #set size
+	ax.margins(0.05) # optional, just adds 5% padding to auto scaling
+
+	#iterate through groups to layer the plot
+	#note the use of cluster_name and cluster_color dicts with the 'name' lookup to return 
+	#appropriate color/label
+	for name, group in groups:
+		ax.plot(group.x, group.y, marker='o', linestyle='', ms=12,
+			label=cluster_names[name], color=cluster_colors[name],
+			mec='none')
+		ax.set_aspect('auto')
+		ax.tick_params(axis='x',
+			which='both',
+			bottom='off',
+			top='off',
+			labelleft='off')
+
+	ax.legend(numpoints=1)
+
+	for i in range(len(df)):
+		ax.text(df.ix[i]['x'], df.ix[i]['y'], df.ix[i]['title'],size=8)
+
+	plt.show()
 
 if __name__ == "__main__":
     connect_to_db(app)
