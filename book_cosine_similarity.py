@@ -35,11 +35,13 @@ from pylab import *
 
 
 def main_func():
-	current_time = datetime.datetime.utcnow()
-	onehund_weeks_ago = current_time - datetime.timedelta(weeks=100)
-	list_of_book_objects = Book.query.filter(Book.publication_date > onehund_weeks_ago).all()
-	list_of_book_objects = [book_obj for book_obj in list_of_book_objects if book_obj.locations]
+	# current_time = datetime.datetime.utcnow()
+	# onehund_weeks_ago = current_time - datetime.timedelta(weeks=200)
+	# list_of_book_objects = Book.query.filter(Book.publication_date > onehund_weeks_ago).all()
 	# list_of_book_objects = Book.query.filter(Book.title.ilike('war%')).all()
+	list_of_book_objects = Location.get_books_associated_with_location(100, "Los Angeles")
+	# list_of_book_objects = [book_obj for book_obj in list_of_book_objects if book_obj.locations]
+	
 	print "NUMBER OF BOOKS, ", len(list_of_book_objects)
 	bookobj_tokens_dict = {}
 	for book_obj in list_of_book_objects:
@@ -59,9 +61,8 @@ def main_func():
 			# print "#" * 20
 			bookobj_tokens_dict[book_obj] = stemmed_tokens
 
-	cosine_sim = cosine_similarity(bookobj_tokens_dict)
-	# print "cosine sim, ", cosine_sim
-	return cosine_sim
+	kmeans_variables = tfidf_similarity(bookobj_tokens_dict)
+	kmeans_cluster(*kmeans_variables)
 	
 
 def get_tokens(book_description):
@@ -78,8 +79,11 @@ def get_tokens(book_description):
 
 def remove_stopwords(book_descrip_stripped):
 	"""Remove the stopwords from the list of tokens. """
-
+	lemmatizer = nltk.WordNetLemmatizer()
+	my_stopwords = ['author', 'book', 'chapter', 'edition', 'read', 'novel']
 	token_list_filtered = [word for word in book_descrip_stripped if not word in stopwords.words('english')]
+	token_list_filtered = [word for word in token_list_filtered if not lemmatizer.lemmatize(word) in my_stopwords]
+
 	
 	return token_list_filtered
 
@@ -99,8 +103,8 @@ def stem_tokens(token_list_filtered):
 	# print "STEMMED TOKENS 2", stemmed_tokens
 	return stemmed_tokens
 
-def cosine_similarity(bookobj_tokens_dict):
-	
+def tfidf_similarity(bookobj_tokens_dict):
+
 	#####################################
 	### TFIDF and Document Similarity ###
 	#####################################
@@ -115,7 +119,7 @@ def cosine_similarity(bookobj_tokens_dict):
 	# # min_idf --if an integer, then the term has to be in at least 'X' integer documents to be 
 	# # considerd. 0.2 means it needs to be in at least 20% of documents
 	# # ngram)range -- means to look at unigrams, bigrams, and trigrams
-	tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000,
+	tfidf_vectorizer = TfidfVectorizer(max_df=0.5, max_features=200000,
                                  min_df=0.2, stop_words='english',
                                  use_idf=True, tokenizer=get_tokens, ngram_range=(1,3))
 	
@@ -125,7 +129,9 @@ def cosine_similarity(bookobj_tokens_dict):
 	# # terms is a list of features used in the tf-idf matrix
 	terms = tfidf_vectorizer.get_feature_names()
 	print "terms, ", terms
+	return terms, description_tokens, tfidf_matrix, titles, bookobj_tokens_dict
 
+def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_tokens_dict):
 	######################
 	### KMeans Cluster ###
 	######################
@@ -134,9 +140,14 @@ def cosine_similarity(bookobj_tokens_dict):
 	# #the tf-idf matrix and can be used to generate a measure of similarity between each document and the 
 	# #other documents in the corpus (each synopsis among the synopses). Subtracting it from 1 provides 
 	# #cosine distance which I will use for plotting on a euclidean (2-dimensional) plane.
-	dist = cosine_similarity(tfidf_matrix)
+	dist = 1 - cosine_similarity(tfidf_matrix)
 	
-	num_clusters = 6 # if this number is changed, update the cluster_color dictionary
+	num_clusters = 9 # if this number is changed, update the cluster_color dictionary
+	# km = KMeans(init='k-means++', t
+	# 			max_iter=300, 
+	# 			n_init=20,
+ #                verbose=0, 
+ #                n_clusters = num_clusters)
 	km = KMeans(n_clusters = num_clusters)
 	km.fit(tfidf_matrix)
 	clusters = km.labels_.tolist()
@@ -175,7 +186,7 @@ def cosine_similarity(bookobj_tokens_dict):
 	for i in range(num_clusters):
 		print "Cluster %d words:" % i
 		the_terms = []
-		for ind in order_centroids[i, :5]: # top 5 words that are nearest to the cluster centroid
+		for ind in order_centroids[i, :6]: # top 5 words that are nearest to the cluster centroid
 			
 			graph_terms = vocab_frame.ix[terms[ind].split(' ')].values.tolist()[0][0].encode('utf-8','ignore')
 			the_terms.append(graph_terms)
@@ -219,7 +230,9 @@ def cosine_similarity(bookobj_tokens_dict):
 	#################################
 
 	# #set up colors per clusters using a dict
-	cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', 5:'#F7EC45'}
+	cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', 
+					5:'#F7EC45', 6:'#2ee3b6', 7:'#cd82c0', 8:'#a6efa4'}
+	# cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e'}
 
 	# #set up cluster names using a dict
 	graph_values = [", ".join(term_list) for term_list in graph_values]
@@ -255,6 +268,8 @@ def cosine_similarity(bookobj_tokens_dict):
 		ax.text(df.ix[i]['x'], df.ix[i]['y'], df.ix[i]['title'],size=8)
 
 	plt.show()
+
+
 
 if __name__ == "__main__":
     connect_to_db(app)
