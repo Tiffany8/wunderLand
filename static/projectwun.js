@@ -35,11 +35,11 @@ function getBookResults(evt) {
 
     for (var book=0; book <json.name.length; book++) {
         if (book%3===0) {
-          $("#book-result-div").append("<div class='row'><div class='col-md-4'><a data-toggle='modal' data-target='#myModal' href='#'><img id='" + json.name[book].isbn + "' class='book-thumbnail' src='" + json.name[book].thumbnailUrl + "'></a></div>");
+          $("#book-result-div").append("<div class='row'><div class='col-md-4'><a data-toggle='modal' data-target='#myModal' href='#'><img id='" + json.name[book].isbn + "' class='book-thumbnail' data-title='" + json.name[book].title + "' data-keywords='" + json.name[book].keywords + "' src='" + json.name[book].thumbnailUrl + "'></a></div>");
         } else if (book%3===2) {
-          $("#book-result-div").append("<div class='col-md-4'><a data-toggle='modal' data-target='#myModal' href='#'><img id='" + json.name[book].isbn + "' class='book-thumbnail' src='" + json.name[book].thumbnailUrl + "'></a></div></div>"); 
+          $("#book-result-div").append("<div class='col-md-4'><a data-toggle='modal' data-target='#myModal' href='#'><img id='" + json.name[book].isbn + "' class='book-thumbnail' data-title='" + json.name[book].title + "' data-keywords='" + json.name[book].keywords + "' src='" + json.name[book].thumbnailUrl + "'></a></div></div>"); 
         } else {
-          $("#book-result-div").append("<div class='col-md-4'><a data-toggle='modal' data-target='#myModal' href='#'><img id='" + json.name[book].isbn + "' class='book-thumbnail' src='" + json.name[book].thumbnailUrl + "'></a></div>"); 
+          $("#book-result-div").append("<div class='col-md-4'><a data-toggle='modal' data-target='#myModal' href='#'><img id='" + json.name[book].isbn + "' class='book-thumbnail' data-title='" + json.name[book].title + "' data-keywords='" + json.name[book].keywords + "' src='" + json.name[book].thumbnailUrl + "'></a></div>"); 
         }
         
             // data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo"
@@ -48,12 +48,49 @@ function getBookResults(evt) {
       // $('#imagepreview').attr('src', $('#bookcover').attr('src'));
       // $('#author').append("Author: " + json.name[book].authors);
       // $('#description').append("Description: " + json.name[book].description);
+      // $(".book-thumbnail").on('click', getModalInfoForEachBook);
+      $(".book-thumbnail").click(function() {
+        $('.book-title').empty();
+        $('.book-keywords').empty();
+        $(".book-keywords").append($(this).data("keywords"));
+        $(".book-title").append($(this).data("title"));
+      });
+
+
 
     }
   });
 }
 // create a function that is tied to the creation of the thumbnail --- what's going to change is that book's personal info
 // clear the div at the beginning of the function 
+
+
+
+function getModalInfoForEachBook(evt) {
+  console.log("something there")
+  $('.book-title').empty();
+  $('.book-keywords').empty();
+
+  var url='/search?' + $('#user_book_query').serialize();
+
+  $.get(url, function(json) {
+    console.log(json)
+    // for (var book=0; book < json.name.length; book++) {
+    //   if ($('img').attr('id') === json.name[book])
+    // }
+    //   ($('img').attr('id') === 0)
+  })
+}
+
+
+
+
+
+
+
+
+
+
 
 function getKMeansResults(evt) {
   evt.preventDefault();
@@ -99,9 +136,6 @@ $(document).ready(function () {
   });
 
    
-  // $("#book-thumbnail").on('click', function() {
-  //   $('#myModal').modal('show');
-  // });
   // $("#book-thumbnail").modal("show");
 
 })
