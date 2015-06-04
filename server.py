@@ -34,7 +34,7 @@ def index():
 def search_for_books():
     """Search for books through the homepage by location."""
 
-    user_location_query = flaskrequest.args.get('search-input')
+    user_location_query = flaskrequest.args.get('search-input') #both
     print "user query, ", user_location_query
     radius = flaskrequest.args.get('radius')
     print "radius1, ", radius
@@ -44,17 +44,15 @@ def search_for_books():
 
     #query for books associated with place within 100mi
     #returns a list of book objects
-    jsonify_search_result_list = []
+    jsonify_search_result_list = []         # json result
 
     ##hard code with LA cordinates due to quota limit:##
-    book_obj_list = Location.get_books_associated_with_location(100, user_location_query)
+    book_obj_list = Location.get_books_associated_with_location(100, user_location_query) #both
     print book_obj_list
     #for loop to pull out the attributes
 
-    # from the book_cosine_similarity file
-    kmeans_cluster_html = main_func(book_obj_list)
 
-    for book_object in book_obj_list:
+    for book_object in book_obj_list:               # json result
         book_dict = {}
         author_list = [author.author_name for author in book_object.authors if book_object.authors]
         book_dict["title"] = book_object.title
@@ -73,15 +71,18 @@ def search_for_books():
     # user_location_query, jsonify_search_result_list = jsonList_query
 
 
-    return jsonify(name = jsonify_search_result_list, kmeans = kmeans_cluster_html)
+    return jsonify(name = jsonify_search_result_list)
 
 
 @app.route("/search/kmeans")
 def get_kmeans():
-    kmeans_cluster_html = flaskrequest.args.get('kmeans_cluster_html')
-    return kmeans_cluster_html
+    user_location_query = flaskrequest.args.get('search-input')
+    book_obj_list = Location.get_books_associated_with_location(100, user_location_query)
+    # from the book_cosine_similarity file
+    kmeans_cluster_html = main_func(book_obj_list) # kmeans result
+    return jsonify(kmeans = kmeans_cluster_html)
 
-    
+
 @app.route("/keyword/<keyword>")
 def books_associated_with_keyword_page():
     pass
