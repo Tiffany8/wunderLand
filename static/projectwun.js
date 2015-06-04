@@ -21,8 +21,6 @@
 
 // $('#book-search-submit-button').on('click', getBookResults).load("/search", showBookResults);
 
-
-
 function getBookResults(evt) {
   evt.preventDefault();
   $('#results-div').empty();
@@ -31,25 +29,40 @@ function getBookResults(evt) {
   var url = "/search?" + $('#user_book_query').serialize();
 
   $.get(url, function(json) {
-    console.log(json.name);
+    // console.log(json.name);
+    console.log(json.kmeans);
     $("#results-div").append("<div class='container'><p>Found " + json.name.length + " books associated with " + $("#search-input").val() + ".</p></div>");
     // $("#user-location-query").append($("#user_book_query").val());
     for (var book=0; book <json.name.length; book++) {
     //     console.log(book);
-        $("#book-result-div").append("<div class='container'><div class='jumbotron'><img id='bookcover' src='" + json.name[book].thumbnailUrl + "'></div></div>");
-        
+        $("#book-result-div").append("<div><img id='bookcover' class='book-thumbnail' src='" + json.name[book].thumbnailUrl + "'></div></div>");
+            
 
       }
-      $(".jumbotron").click(function() {
-    console.log("hello")
-   // $('#imagepreview').attr('src', $('#bookcover').attr('src'));
-   $('#imagemodal').show();
+      $("#kmeans_graph").append(json.kmeans);
+      // $(".jumbotron").click(function() {
+      // console.log("hello")
+      // // $('#imagepreview').attr('src', $('#bookcover').attr('src'));
+      // $('#imagemodal').show();
    
-});
+      // });
 
   });
-
 }
+
+
+$(document).ready(function () {
+  $('#user_book_query').on('submit', getBookResults);
+  $('#books').tab('show')
+  $('#myTab a:first').click(function (e) {
+    e.preventDefault()
+    $(this).tab('show')
+  });
+  $('#myTab a:last').click(function (e) {
+    e.preventDefault()
+    $(this).tab('show')
+  });
+})
 
 
 //       $( ".jumbotron" ).click(function() {
@@ -77,6 +90,4 @@ function getBookResults(evt) {
 // $("#book-result-div").on("click", getBookModal);
 
 
-$(document).ready(function () {
-  $('#user_book_query').on('submit', getBookResults);
-})
+

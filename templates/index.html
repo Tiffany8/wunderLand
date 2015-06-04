@@ -36,14 +36,32 @@
 		</fieldset>
 		</form>
 
-
 </div>
 
 
 
-
 		<div id='results-div' class="book-search-results"></div>
-		<div id='book-result-div' class="book-search-results"></div>
+		
+
+		
+
+
+ 
+
+<ul class="nav nav-tabs" id='myTab' data-tabs='tabs'>
+  <li role='presentation' class="active"><a href="#books" aria-controls='#books' role='tab' data-toggle="tab">Book List</a></li>
+  <li role='presentation'><a href="#kmeans" aria-controls='#kmeans' role='tab'data-toggle="tab">K-Means</a></li>
+</ul>
+
+<div id="myTabContent" class="tab-content">
+  <div class="tab-pane fade active in" role='tabpanel' id="books">
+  	<div class='rectangle-box' id="book-result-div"></div>
+  </div>
+
+  <div class="tab-pane fade" role='tabpanel' id="kmeans">
+    <div class='rectangle-box' id='kmeans_graph'></div>
+  </div>
+</div>
 
 
 <!-- Modal -->
