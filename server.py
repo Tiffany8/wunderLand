@@ -11,6 +11,7 @@ import json
 import pprint
 import sys
 from apiclient.discovery import build
+from book_cosine_similarity import *
 
 app = Flask(__name__)
 
@@ -44,10 +45,15 @@ def search_for_books():
     #query for books associated with place within 100mi
     #returns a list of book objects
     jsonify_search_result_list = []
-    ##hard code with LA cordinates due to quota limit:
-    book_obj_list = Location.get_books_associated_with_location(radius, user_location_query)
+
+    ##hard code with LA cordinates due to quota limit:##
+    book_obj_list = Location.get_books_associated_with_location(100, user_location_query)
     print book_obj_list
     #for loop to pull out the attributes
+
+    # from the book_cosine_similarity file
+    kmeans_cluster_html = main_func(book_obj_list)
+
     for book_object in book_obj_list:
         authorlist = []
         if book_object.authors:
@@ -65,10 +71,12 @@ def search_for_books():
     # print jsonify_search_result_list
     print "search complete"
     # user_location_query, jsonify_search_result_list = jsonList_query
-    return jsonify(name = jsonify_search_result_list)
 
 
+    return jsonify(name = jsonify_search_result_list, kmeans = kmeans_cluster_html)
 
+
+# @app.route("search/kmeans")
 
 
 if __name__ == "__main__":
