@@ -39,8 +39,8 @@
 </div>
 
 
-
-		<div id='results-div' class="book-search-results"></div>
+		
+		<div id="results-div" class="book-search-results"></div>
 		
 
 		
@@ -49,39 +49,51 @@
  
 
 <ul class="nav nav-tabs" id='myTab' data-tabs='tabs'>
-  <li role='presentation' class="active"><a href="#books" aria-controls='#books' role='tab' data-toggle="tab">Book List</a></li>
+  <li role='presentation'class='active'><a href="#books" aria-controls='#books' role='tab' data-toggle="tab">Book List</a></li>
   <li role='presentation'><a href="#kmeans" aria-controls='#kmeans' role='tab'data-toggle="tab">K-Means</a></li>
 </ul>
 
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" role='tabpanel' id="books">
-  	<div class='rectangle-box' id="book-result-div"></div>
+  	<div id="book-result-div"></div>
   </div>
 
   <div class="tab-pane fade" role='tabpanel' id="kmeans">
-    <div class='rectangle-box' id='kmeans_graph'></div>
+    <div id='kmeans_graph'></div>
   </div>
 </div>
 
 
-<!-- Modal -->
 
-<div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+
+
+<!-- HTML to write -->
+<!-- <a href="#" data-toggle="tooltip" title="Some tooltip text!">Hover over me</a> -->
+
+<!-- Generated markup by the plugin -->
+<div class="tooltip top" role="tooltip">
+  <div class="tooltip-arrow"></div>
+  <div class="tooltip-inner">
+    Some tooltip text!
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="myModalLabel"></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel"><h4 class="book-title"></h4></h4>
       </div>
       <div class="modal-body">
-        <img src="" id="imagepreview" style="float:left;margin:0 5px 0 0;">
-        <p id="author"></p>
-        <p id="description"></p>
+        <div class="book-keywords"></div>
       </div>
       <div class="modal-footer">
-      	<button type="button" class="btn btn-default" data-dismiss="modal">add to passport</button>
-        <button type="button" class="btn btn-primary">preview</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
