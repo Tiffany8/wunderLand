@@ -1,5 +1,5 @@
-from server import app
-from model import Book, Author, Location, Category, Event, Award, connect_to_db, db
+
+from model import Book, Author, Location, Category, Event, Award, Keyword, connect_to_db, db
 from flask_sqlalchemy import SQLAlchemy
 
 import nltk
@@ -39,8 +39,8 @@ def main_func(list_of_book_objects):
 	# onehund_weeks_ago = current_time - datetime.timedelta(weeks=200)
 	# list_of_book_objects = Book.query.filter(Book.publication_date > onehund_weeks_ago).all()
 	# list_of_book_objects = Book.query.filter(Book.title.ilike('war%')).all()
-	list_of_book_objects = Location.get_books_associated_with_location(100, "Los Angeles")
-	list_of_book_objects = [book_obj for book_obj in list_of_book_objects if book_obj.locations]
+	# list_of_book_objects = Location.get_books_associated_with_location(100, "Los Angeles")
+	list_of_book_objects = [book_obj for book_obj in list_of_book_objects if book_obj.description]
 	
 	print "NUMBER OF BOOKS, ", len(list_of_book_objects)
 	bookobj_tokens_dict = {}
@@ -303,7 +303,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
 
 	#uncomment the below to export to html
 	kmeans_cluster_graph_html = mpld3.fig_to_html(fig)
-	print(kmeans_cluster_graph_html)
+	
 	return kmeans_cluster_graph_html
 
 

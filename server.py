@@ -47,9 +47,8 @@ def search_for_books():
     jsonify_search_result_list = []         # json result
 
     ##hard code with LA cordinates due to quota limit:##
-    book_obj_list = Location.get_books_associated_with_location(100, user_location_query) #both
+    book_obj_list = Location.get_books_associated_with_location(radius, user_location_query) #both
     print book_obj_list
-    #for loop to pull out the attributes
 
 
     for book_object in book_obj_list:               # json result
@@ -77,7 +76,10 @@ def search_for_books():
 @app.route("/search/kmeans")
 def get_kmeans():
     user_location_query = flaskrequest.args.get('search-input')
-    book_obj_list = Location.get_books_associated_with_location(100, user_location_query)
+    print "user_location_query for get kmeans", user_location_query
+    radius = flaskrequest.args.get('radius')
+    print "radius for get kmeans", radius
+    book_obj_list = Location.get_books_associated_with_location(radius, user_location_query)
     # from the book_cosine_similarity file
     kmeans_cluster_html = main_func(book_obj_list) # kmeans result
     return jsonify(kmeans = kmeans_cluster_html)

@@ -35,6 +35,10 @@ books_events = db.Table('books_events',
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
     db.Column('event_id', db.Integer, db.ForeignKey('events.event_id')))
 
+books_keywords = db.Table('books_keywords',
+    db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
+    db.Column('keyword_id', db.Integer, db.ForeignKey('keywords.keyword_id')))
+
 # books_quotes = db.Table("books_quotes",
 #     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
 #     db.Column('quote_id', db.Integer, db.ForeignKey('quotes.quote_id')))
@@ -64,6 +68,7 @@ class Book(db.Model):
         backref=db.backref('books', lazy='dynamic'))
     locations = db.relationship('Location', secondary=locations_books,
         backref=db.backref('books', lazy='dynamic'))
+    
     # characters = db.relationship('Character', secondary=char_books,
     #     backref=db.backref('books', lazy='dynamic'))
 
@@ -117,6 +122,19 @@ class Author(db.Model):
         """Provide helpful representation when printed."""
         return "<Author author_id=%d author=%s>" % (self.author_id, self.author_name)
 
+class Keyword(db.Model):
+
+    __tablename__="keywords"
+    keyword_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    keyword = db.Column(db.Text, nullable=False)
+
+    books = db.relationship("Book", secondary=books_keywords,
+        backref=db.backref('keywords', lazy='dynamic'))
+
+
+    def __repr__(self):
+        return "<Keyword/phrase = %s>" % (self.keyword_id)
+
 
 class Location(db.Model):
 
@@ -134,21 +152,21 @@ class Location(db.Model):
 
         # location = city + ", " + state, + ", " + country
 
-        ##Commenting out while at quota limit:
-        # location_obj = geocoder.google(location)
-        # latlong = location_obj.latlng
-        # print latlong
-        # latitude = latlong[0]
-        # longitude = latlong[1]
+        ##Commenting out while at quota limit and for testing:##
+        ##############And using the LA coordinates##############
+        location_obj = geocoder.google(location)
+        latlong = location_obj.latlng
+        print latlong
+        latitude = latlong[0]
+        longitude = latlong[1]
 
-        #hard coded LA cordinates for testing:
-        latitude = 34.0500
-        longitude = -118.2500
+        ###hard coded LA cordinates for testing:###
+        # latitude = 34.0500
+        # longitude = -118.2500
+        ###########################################
 
-        #I'm setting the default radius to 100 miles
         radius = float(radius)
 
-        #empty list for the books within a 50 mi radius
         books_within_radius_list = []
 
         long_range = (longitude-(radius/69.0), longitude+(radius/69.0))
@@ -294,6 +312,9 @@ class Award(db.Model):
     def __repr__(self):
 
         return "<AWARD id: %d name: %s>" % (self.award_id, self.award)
+
+
+
 
 
 # End

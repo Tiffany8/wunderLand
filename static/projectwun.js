@@ -1,25 +1,5 @@
 // PART 1: SHOW Book results
 
-// function getBookResults(evt) {
-//   // evt.preventDefault();
-//   // $('#book-search-results-div').empty();
-//   // $('#book-search-results-div').load('/search');
-//   // var query = $.get('/', '#user_book_query').val();
-//   // $("user-location-query").append(query);
-//   $.get("/", showBookResults);
-//   }
-
-
-// function showBookResults(evt) {
-//   $.get("/search", function(results){
-//       for (book in results) {
-//         console.log(book);
-//         $("#book-result-div").append("<div><a href=" + book.previewLink + ">" + "<img src=" + book.thumbnailUrl + "></a>");
-//       }
-//   }
-
-
-// $('#book-search-submit-button').on('click', getBookResults).load("/search", showBookResults);
 
 function getBookResults(evt) {
   evt.preventDefault();
@@ -28,10 +8,10 @@ function getBookResults(evt) {
 
   var url = "/search?" + $('#user_book_query').serialize();
 
-  $.get(url, function(json) { // both
+  $.get(url, function(json) { 
 
 
-    $("#results-div").append("<div class='container'><p>Found " + json.name.length + " books associated with " + $("#search-input").val() + ".</p></div>"); //json result callback
+    $("#results-div").append("<div class='container'><p>Found " + json.name.length + " books associated with " + $("#search-input").val() + ".</p></div>"); 
 
     for (var book=0; book <json.name.length; book++) {
         if (book%3===0) {
@@ -42,27 +22,16 @@ function getBookResults(evt) {
           $("#book-result-div").append("<div class='col-md-4'><a data-toggle='modal' data-target='#myModal' href='#'><img id='" + json.name[book].isbn + "' class='book-thumbnail' data-title='" + json.name[book].title + "' data-keywords='" + json.name[book].keywords + "' src='" + json.name[book].thumbnailUrl + "'></a></div>"); 
         }
         
-            // data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo"
-
-      // $('#myModalLabel').append(json.name[book].title);
-      // $('#imagepreview').attr('src', $('#bookcover').attr('src'));
-      // $('#author').append("Author: " + json.name[book].authors);
-      // $('#description').append("Description: " + json.name[book].description);
-      // $(".book-thumbnail").on('click', getModalInfoForEachBook);
       $(".book-thumbnail").click(function() {
         $('.book-title').empty();
         $('.book-keywords').empty();
         $(".book-keywords").append($(this).data("keywords"));
         $(".book-title").append($(this).data("title"));
       });
-
-
-
     }
   });
 }
-// create a function that is tied to the creation of the thumbnail --- what's going to change is that book's personal info
-// clear the div at the beginning of the function 
+
 
 
 
@@ -75,35 +44,20 @@ function getModalInfoForEachBook(evt) {
 
   $.get(url, function(json) {
     console.log(json)
-    // for (var book=0; book < json.name.length; book++) {
-    //   if ($('img').attr('id') === json.name[book])
-    // }
-    //   ($('img').attr('id') === 0)
   })
 }
-
-
-
-
-
-
-
-
-
 
 
 function getKMeansResults(evt) {
   evt.preventDefault();
   $('#results-div').empty();
-  $('#book-result-div').empty();    
+  $('#book-result-div').empty();
+  $('#kmeans_graph').empty();    
 
   var url = "/search/kmeans?" + $('#user_book_query').serialize();
 
-  $.get(url, function(json) { // both
-
-      
-      $("#kmeans_graph").append(json.kmeans); // kmeans result callback
-    
+  $.get(url, function(json) { 
+    $("#kmeans_graph").append(json.kmeans); 
   });
 }
 
@@ -112,7 +66,7 @@ $(document).ready(function () {
   $('#user_book_query').on('submit', getBookResults);
   $('#user_book_query').on('submit', getKMeansResults)
   $('#books').tab('show')
-  // $("#book-thumbnail").on('click', function () { $('#myModal').modal("show")});
+
   $('#myTab a:first').click(function (e) {
     e.preventDefault()
     $(this).tab('show')
@@ -134,34 +88,6 @@ $(document).ready(function () {
       $("#loaderthingy").hide();
       clearTimeout(timer);
   });
-
-   
-  // $("#book-thumbnail").modal("show");
-
 })
 
-
-//       $( ".jumbotron" ).click(function() {
-//   alert( "Handler for .click() called." );
-// });
-
-
-// //Modal
-// function getBookModal(evt) {
-
-//   var url = "/search?" + $('#user_book_query').serialize();
-
-//   $.get(url, function(json) {
-//   for (var book=0; book <json.name.length; book++) {
-//   $("#book-result-div").on("click", function() {
-//   $('#myModalLabel').append(json.name[book].title);
-//   $('#imagepreview').attr('src', $('#bookcover').attr('src'));
-//   $('#author').append("Author: " + json.name[book].authors);
-//   $('#description').append("Description: " + json.name[book].description);
-//   $('#imagemodal').modal('show');
-//   });
-// }
-
-
-// $("#book-result-div").on("click", getBookModal);
 
