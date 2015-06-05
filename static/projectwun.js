@@ -25,7 +25,11 @@ function getBookResults(evt) {
       $(".book-thumbnail").click(function() {
         $('.book-title').empty();
         $('.book-keywords').empty();
-        $(".book-keywords").append($(this).data("keywords"));
+        var keywords = ($(this).data("keywords")).split(",");
+        for (var word=0; word<keywords.length; word++) {
+          $(".book-keywords").append("<a class='btn btn-success btn-xs' href='/keyword/" + keywords[word] + "'>" + keywords[word] + "</a>" + " ")
+          console.log(keywords[word]);
+        }
         $(".book-title").append($(this).data("title"));
       });
     }
