@@ -127,19 +127,6 @@ $(document).on('click', '.keywordbutton', function() {
 
 
 
-// Par 3: Geolocation
-
-function showPosition(){
-        if(navigator.geolocation){
-            navigator.geolocation.getCurrentPosition(function(position){
-                var positionInfo = "Your current position is (" + "Latitude: " + position.coords.latitude + ", " + "Longitude: " + position.coords.longitude + ")";
-                document.getElementById("result").innerHTML = positionInfo;
-            });
-        } else{
-            alert("Sorry, your browser does not support HTML5 geolocation.");
-        }
-    }
-
 
 function getModalInfoForEachBook(evt) {
   console.log("something there")
@@ -164,10 +151,25 @@ function getKMeansResults(evt) {
 
   $.get(url, function(json) { 
     $("#kmeans_graph").append(json.kmeans); 
+    // console.log(json.kmeans)
   });
 }
 
 
+// Par 3: Geolocation
+
+function successFunction(position) {
+    var lat = position.coords.latitude;
+    var long = position.coords.longitude;
+    var url = "/location?lat=" + lat + "&" + "long=" + long
+    console.log('Your latitude is :'+lat+' and longitude is '+long);
+}
+
+function errorFunction(position) {
+  alert('Error!');
+}
+
+// DOCUMENT READY 
 $(document).ready(function () {
   $('#user_book_query').on('submit', getBookResults);
   $('#user_book_query').on('submit', getKMeansResults)
@@ -207,10 +209,35 @@ $(document).ready(function () {
   $('.tester').on('click', function() {
   console.log("what'sup");
 });
-  // $($(this).data('key')).on('click', function() {
-  //   console.log('hi')
-  // });
+  
+$(document).on('submit', function() {
+  // console.log("tester")
+  // var x = document.getElementById("demo");
+  // function getLocation() {
+  //   if (navigator.geolocation) {
+  //       navigator.geolocation.getCurrentPosition(showPosition);
+  //   } else {
+  //       x.innerHTML = "Geolocation is not supported by this browser.";
+  //   }
+  // }
+  // function showPosition(position) {
+  //   console.log('here?')
+  //   x.innerHTML = "Latitude: " + position.coords.latitude + 
+  //   "<br>Longitude: " + position.coords.longitude; 
+  // }
 
-})
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(successFunction, errorFunction);
+    
+  } else {
+    alert('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
+  }
+
+}); // geolocation test
+
+  
+  
+
+}) // END
 
 
