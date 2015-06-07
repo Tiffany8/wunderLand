@@ -7,10 +7,12 @@ from model import Book, Author, Location, Category, Award, Event, Keyword, Chara
 import os
 import json
 from book_cosine_similarity import *
+from get_local_venues import *
 #from Google Books
 import pprint
 import sys
 from apiclient.discovery import build
+import requests
 
 
 app = Flask(__name__)
@@ -22,6 +24,7 @@ app.secret_key = "ABC"
 # This is horrible. Fix this so that, instead, it raises an error.
 app.jinja_env.undefined = StrictUndefined
 
+apikey = os.environ['LIBRARYTHING_DEVELOP_KEY']
 
 
 @app.route("/")
@@ -136,7 +139,12 @@ def books_associated_with_keyword_page():
 
 @app.route('/location', methods=['GET'])
 def get_location_return_nearby_venues():
-    pass
+    latitude = flaskrequest.args.get('lat')
+    print "lat", latitude
+    longitude = flaskrequest.args.get('lon')
+    local_venues = get_local_venues(latitude, longitude)
+    print local_venues
+    return jsonify(localVenues = local_venues)
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the point
