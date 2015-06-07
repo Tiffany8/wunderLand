@@ -156,26 +156,52 @@ function getKMeansResults(evt) {
 }
 
 
-// Par 3: Geolocation
+// Part 3: Geolocation for LocalVenues
 
-function successFunction(position) {
+
+
+function successFunction(position) { 
+  $('#local_venues').empty();
     var lat = position.coords.latitude;
-    var long = position.coords.longitude;
-    var url = "/location?lat=" + lat + "&" + "long=" + long
-    console.log('Your latitude is :'+lat+' and longitude is '+long);
+    var lon = position.coords.longitude;
+    var url = "/location?lat=" + lat + "&" + "lon=" + lon
+    console.log('Your latitude is :'+lat+' and longitude is '+lon);
+    
+    $.get(url, function(json) {
+      console.log(json.localVenues)
+      // $('#local_venues').append(local_venues);
+
+    });
 }
 
 function errorFunction(position) {
-  alert('Error!');
+  $('#local_venues').empty();
+  flash('Error!');
 }
 
 // DOCUMENT READY 
 $(document).ready(function () {
   $('#user_book_query').on('submit', getBookResults);
-  $('#user_book_query').on('submit', getKMeansResults)
-  $('#books').tab('show')
+  $('#user_book_query').on('submit', getKMeansResults);
+
+  $('#user_book_query').on('submit', function() {
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(successFunction, errorFunction);
+  } else {
+    flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
+  }
+  }); // geolocation test
+
+
+  $('#books').tab('show');
 
   $('#myTab a:first').click(function (e) {
+    e.preventDefault()
+    $(this).tab('show')
+  });
+
+  $('#myTab a:nth-child(2)').click(function (e) {
     e.preventDefault()
     $(this).tab('show')
   });
@@ -210,30 +236,6 @@ $(document).ready(function () {
   console.log("what'sup");
 });
   
-$(document).on('submit', function() {
-  // console.log("tester")
-  // var x = document.getElementById("demo");
-  // function getLocation() {
-  //   if (navigator.geolocation) {
-  //       navigator.geolocation.getCurrentPosition(showPosition);
-  //   } else {
-  //       x.innerHTML = "Geolocation is not supported by this browser.";
-  //   }
-  // }
-  // function showPosition(position) {
-  //   console.log('here?')
-  //   x.innerHTML = "Latitude: " + position.coords.latitude + 
-  //   "<br>Longitude: " + position.coords.longitude; 
-  // }
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(successFunction, errorFunction);
-    
-  } else {
-    alert('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
-  }
-
-}); // geolocation test
 
   
   
