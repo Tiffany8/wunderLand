@@ -167,7 +167,9 @@ function successFunction(position) {
     var url = "/location?lat=" + lat + "&" + "lon=" + lon
     console.log('Your latitude is :'+lat+' and longitude is '+lon);
     var coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-    $(initialize(coords));
+    $('a[aria-controls="#venues"]').on('shown.bs.tab', function (e) {
+    initialize(coords);
+  });
     
     $.get(url, function(json) {
       // console.log(json.localVenues)
@@ -237,15 +239,15 @@ $(document).ready(function () {
   $('#user_book_query').on('submit', getKMeansResults);
   
 
-  // $('#user_book_query').on('submit', function() {
+  $('#user_book_query').on('submit', function() {
 
-  // if (navigator.geolocation) {
-  //   navigator.geolocation.getCurrentPosition(successFunction);
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(successFunction);
 
-  // } else {
-  //   flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
-  // }
-  // }); // geolocation test
+  } else {
+    flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
+  }
+  }); // geolocation test
 
 
   $('#books').tab('show');
@@ -290,14 +292,7 @@ $(document).ready(function () {
   console.log("what'sup");
   });
 
-  $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(successFunction);
 
-    } else {
-      flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
-    }
-  });
 
   
 
