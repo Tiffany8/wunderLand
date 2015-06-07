@@ -13,6 +13,7 @@ import pprint
 import sys
 from apiclient.discovery import build
 import requests
+import pprint
 
 
 app = Flask(__name__)
@@ -142,9 +143,11 @@ def get_location_return_nearby_venues():
     latitude = flaskrequest.args.get('lat')
     print "lat", latitude
     longitude = flaskrequest.args.get('lon')
-    local_venues = get_local_venues(latitude, longitude)
-    print local_venues
-    return jsonify(localVenues = local_venues)
+    local_venues_dict = return_local_venues(latitude, longitude)
+    print local_venues_dict
+    pp = pprint.PrettyPrinter(indent=4)
+    
+    return jsonify(localVenues = local_venues_dict)
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the point

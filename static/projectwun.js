@@ -168,11 +168,11 @@ function successFunction(position) {
     console.log('Your latitude is :'+lat+' and longitude is '+lon);
     var coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
     $('a[aria-controls="#venues"]').on('shown.bs.tab', function (e) {
-    initialize(coords);
-  });
+      initialize(coords);
+    });
     
     $.get(url, function(json) {
-      // console.log(json.localVenues)
+      console.log(json.localVenues)
       // $('#local_venues').append(local_venues);
 
     });

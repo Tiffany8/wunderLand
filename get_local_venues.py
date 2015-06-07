@@ -14,8 +14,8 @@ apikey = os.environ['LIBRARYTHING_DEVELOP_KEY']
 
 def return_local_venues(latitude, longitude):
 	local_venues = get_local_venues(latitude, longitude)
-	ten_local_venues = parse_local_venues(local_venues)
-	return ten_local_venues
+	local_venues_dict = parse_local_venues(local_venues)
+	return local_venues_dict
 
 def get_local_venues(latitude, longitude):
 
@@ -40,13 +40,13 @@ def parse_local_venues(local_venues):
 		website = item.find('lt:officialSite',ns).text
 		latitude = item.find('lt:location/lt:lat',ns).text
 		longitude = item.find('lt:location/lt:lng',ns).text
-		local_venues_dict[name] = {name=name,
-		}
+		local_venues_dict[name] = {website: website,
+								latitude: latitude,
+								longitude: longitude
+								}
 
-
-		local_venues_dict[name]
-
-		print "place, ", place
+		print "place, ", name
+	return local_venues_dict
 
 
 
