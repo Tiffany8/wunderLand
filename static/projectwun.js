@@ -166,9 +166,11 @@ function successFunction(position) {
     var lon = position.coords.longitude;
     var url = "/location?lat=" + lat + "&" + "lon=" + lon
     console.log('Your latitude is :'+lat+' and longitude is '+lon);
+    var coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+    $(initialize(coords));
     
     $.get(url, function(json) {
-      console.log(json.localVenues)
+      // console.log(json.localVenues)
       // $('#local_venues').append(local_venues);
 
     });
@@ -186,23 +188,34 @@ function errorFunction(position) {
 
 
 
-var myCenter=new google.maps.LatLng(53, -1.33);
-var marker=new google.maps.Marker({
-    position:myCenter
-});
 
-function initialize() {
+
+
+function initialize(coords) {
+  console.log("in initialize")
+  console.log(coords)
   var mapProp = {
-      center:myCenter,
-      zoom: 14,
+      center:coords,
+      zoom: 15,
       draggable: false,
       scrollwheel: false,
+      mapTypeControl:false,
+      navigationControlOptions: {
+      style: google.maps.NavigationControlStyle.SMALL
+      },
       mapTypeId:google.maps.MapTypeId.ROADMAP
   };
-  
+
+  var marker=new google.maps.Marker({
+    position:coords,
+    map: map,
+  });
+
   var map=new google.maps.Map(document.getElementById("map-canvas"),mapProp);
   marker.setMap(map);
-    
+  
+ 
+
   google.maps.event.addListener(marker, 'click', function() {
       
     infowindow.setContent(contentString);
@@ -222,16 +235,17 @@ function initialize() {
 $(document).ready(function () {
   $('#user_book_query').on('submit', getBookResults);
   $('#user_book_query').on('submit', getKMeansResults);
-  $('#user_book_query').on('submit', initialize);
+  
 
-  $('#user_book_query').on('submit', function() {
+  // $('#user_book_query').on('submit', function() {
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(successFunction, errorFunction);
-  } else {
-    flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
-  }
-  }); // geolocation test
+  // if (navigator.geolocation) {
+  //   navigator.geolocation.getCurrentPosition(successFunction);
+
+  // } else {
+  //   flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
+  // }
+  // }); // geolocation test
 
 
   $('#books').tab('show');
@@ -277,7 +291,12 @@ $(document).ready(function () {
   });
 
   $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-    initialize();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(successFunction);
+
+    } else {
+      flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
+    }
   });
 
   
