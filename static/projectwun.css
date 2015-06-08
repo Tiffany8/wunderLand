@@ -71,7 +71,7 @@ opacity: 0;
     position: fixed;
     z-index: 10;
     background: rgba( 255, 255, 255, .8 )
-                url('./img/spiffygif_30x30.gif')
+                url('./img/flipping_book.gif')
                 50% 50%
                 no-repeat;
 }
@@ -93,3 +93,61 @@ opacity: 0;
     height:auto;
     float:left;
 }*/
+
+#map-canvas {
+  width:100%;
+  height:480px;
+}
+
+/*#local_venues {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }*/
+
+/*#search-input{
+  font: 16px arial, sans-serif;
+  line-height: 1.2 em !important;
+  height: 1.2em !important;
+  border:none;
+  padding:0px;
+  width:100%;
+  position:absolute;
+  z-index:6;
+  left:0px;
+  outline:none;
+  background:url(data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw%3D%3D) transparent;
+}*/
+
+/*#search-input-div {
+  -webkit-box-sizing:border-box;
+  height:100%;
+  overflow: hidden;
+  padding:6px 9px 0;
+
+}*/
+
+#book-search-submit-button {
+  /*vertical-align: middle;*/
+  /*opacity: 0.6;
+  display:inline-block;
+  height: 23px;
+  width:17px;*/
+  cursor: crosshair;
+
+}
+
+#user_book_query {
+  position:relative;
+}
+
+#search-input-form {
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  height:30%;
+  width:50%;
+  margin:auto;
+}
