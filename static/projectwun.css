@@ -139,6 +139,7 @@ opacity: 0;
 
 #user_book_query {
   position:relative;
+  padding: 5% 0;
 }
 
 #search-input-form {
@@ -150,4 +151,5 @@ opacity: 0;
   height:30%;
   width:50%;
   margin:auto;
+  padding: 10% 0;
 }
