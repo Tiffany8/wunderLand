@@ -167,16 +167,19 @@ function successFunction(position) {
     var url = "/location?lat=" + lat + "&" + "lon=" + lon
     console.log('Your latitude is :'+lat+' and longitude is '+lon);
     var coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-    $('a[aria-controls="#venues"]').on('shown.bs.tab', function (e) {
-      initialize(coords);
-    });
     
-    $.get(url, function(json) {
-      console.log(json.localVenues)
-      // $('#local_venues').append(local_venues);
-
-    });
-}
+    
+  $.get(url, function(json) {
+    console.log(json.localVenues)
+    var bookStores = json.localVenues
+    $('a[aria-controls="#venues"]').on('shown.bs.tab', function (e) {
+      initialize(coords, bookStores);
+    }); // end of venues tab show
+      
+    console.log(bookStores)
+  }); //end of get   
+  
+} // end of successFunction
 
 function errorFunction(position) {
   $('#local_venues').empty();
@@ -195,7 +198,7 @@ var styles = [{"stylers":[{"saturation":-100}]},{"featureType":"water","elementT
 
 
 
-function initialize(coords) {
+function initialize(coords, bookStores) {
   console.log("in initialize")
   console.log(coords)
   var mapProp = {
@@ -210,16 +213,61 @@ function initialize(coords) {
       mapTypeId:google.maps.MapTypeId.ROADMAP
   };
 
-  var marker=new google.maps.Marker({
-    position:coords,
-    map: map,
-  });
+  // Add markers to the map
 
-  var map=new google.maps.Map(document.getElementById("map-canvas"),mapProp);
+  // Marker sizes are expressed as a Size of X,Y
+  // where the origin of the image (0,0) is located
+  // in the top left of the image.
+
+  // Origins, anchor positions and coordinates of the marker
+  // increase in the X direction to the right and in
+  // the Y direction down.
+  // var image = {
+  //   url:'http://www.icon2s.com/wp-content/uploads/2013/07/black-white-metro-books-icon.png',
+  //   // This marker is 20 pixels wide by 32 pixels tall.
+  //   size: new google.maps.Size(20, 32),
+  //   // The origin for this image is 0,0.
+  //   origin: new google.maps.Point(0,0),
+  //   // The anchor for this image is the base of the flagpole at 0,32.
+  //   anchor: new google.maps.Point(0, 32)
+  // };
+
+  var bookIcon = {
+    path: "M 461.754,51.435c0-3.902-1.822-7.581-4.927-9.945c-3.105-2.364-7.132-3.144-10.896-2.105L230.877,98.694L15.823,39.384 c-3.762-1.037-7.792-0.258-10.896,2.105C1.823,43.853,0,47.531,0,51.434v298.615c0,5.624,3.755,10.555,9.177,12.05l216.934,59.829 c1.468,0.583,3.031,0.892,4.611,0.892c0.052,0,0.104-0.005,0.155-0.006c0.052,0.001,0.104,0.006,0.154,0.006 c1.58,0,3.143-0.309,4.609-0.891L452.577,362.1c5.422-1.495,9.177-6.427,9.177-12.05V51.435z M25,67.849l193.221,53.289v272.683 L25,340.53V67.849z M436.754,340.53l-193.221,53.29V121.138l193.221-53.289V340.53 z",
+    fillColor: '#000000',
+    fillOpacity: 0.8,
+    scale: 0.05,
+    strokeColor: 'black',
+    strokeWeight: 2,
+    size: new google.maps.Size(1,4),
+    origin: new google.maps.Point(0,0),
+    anchor: new google.maps.Point(0,32)
+  };
+  // Shapes define the clickable region of the icon.
+  // The type defines an HTML &lt;area&gt; element 'poly' which
+  // traces out a polygon as a series of X,Y points. The final
+  // coordinate closes the poly by connecting to the first
+  // coordinate.
+  var shape = {
+      coords: [1, 1, 1, 20, 18, 20, 18 , 1],
+      type: 'poly'
+  };
+
+  var map = new google.maps.Map(document.getElementById("map-canvas"),mapProp);
   map.setOptions({styles: styles});
-  marker.setMap(map);
-  
- 
+
+  for (var i = 0; i < bookStores.length; i++) {
+    var bookstore = bookStores[i];
+    var myLatLng = new google.maps.LatLng(bookstore[1], bookstore[2]);
+    var marker = new google.maps.Marker({
+        position: myLatLng,
+        map: map,
+        icon: bookIcon,
+        shape: shape,
+        title: bookstore[0],
+        zIndex: bookstore[3]
+    });
+  }
 
   google.maps.event.addListener(marker, 'click', function() {
       
@@ -229,6 +277,47 @@ function initialize(coords) {
   }); 
 };
 
+// function setMarkers(map, locations) {
+//   // Add markers to the map
+
+//   // Marker sizes are expressed as a Size of X,Y
+//   // where the origin of the image (0,0) is located
+//   // in the top left of the image.
+
+//   // Origins, anchor positions and coordinates of the marker
+//   // increase in the X direction to the right and in
+//   // the Y direction down.
+//   var image = {
+//     url: 'img/noun_61286_cc.svg',
+//     // This marker is 20 pixels wide by 32 pixels tall.
+//     size: new google.maps.Size(20, 32),
+//     // The origin for this image is 0,0.
+//     origin: new google.maps.Point(0,0),
+//     // The anchor for this image is the base of the flagpole at 0,32.
+//     anchor: new google.maps.Point(0, 32)
+//   };
+//   // Shapes define the clickable region of the icon.
+//   // The type defines an HTML &lt;area&gt; element 'poly' which
+//   // traces out a polygon as a series of X,Y points. The final
+//   // coordinate closes the poly by connecting to the first
+//   // coordinate.
+//   var shape = {
+//       coords: [1, 1, 1, 20, 18, 20, 18 , 1],
+//       type: 'poly'
+//   };
+//   for (var i = 0; i < locations.length; i++) {
+//     var bookstore = locations[i];
+//     var myLatLng = new google.maps.LatLng(bookstore[1], bookstore[2]);
+//     var marker = new google.maps.Marker({
+//         position: myLatLng,
+//         map: map,
+//         icon: image,
+//         shape: shape,
+//         title: bookstore[0],
+//         zIndex: bookstore[3]
+//     });
+//   }
+// }
 
 
 
