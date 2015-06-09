@@ -14,38 +14,42 @@
 </head>
 
 <body>
-<div class="container">
-        <!-- Static navbar -->
-    <nav class="navbar navbar-default">
-            <div class="navbar-header">
-                <button type="button"
-                        class="navbar-toggle collapsed"
-                        data-toggle="collapse"
-                        data-target="#navbar"
-                        aria-expanded="false"
-                        aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="/">wunderLand</a>
-            </div>
+<div class="container" id="main-container">
+    <!-- <div class='background-image-container'> -->
+            <!-- Static navbar -->
+        <nav class="navbar navbar-default">
+                <div class="navbar-header">
+                    <button type="button"
+                            class="navbar-toggle collapsed"
+                            data-toggle="collapse"
+                            data-target="#navbar"
+                            aria-expanded="false"
+                            aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">wunderLand</a>
+                </div>
+                <nav class="navbar-right" id="navbar-search">
+                </nav>
+                
             
-        
-    </nav>
+        </nav>
 
 
-    <!-- Show flashed messages -->
-    <div class="flash">
-    {% with messages = get_flashed_messages() %}
-        {% for message in messages %}
-            <div class="alert alert-warning">{{ message }}</div>
-        {% endfor %}
-    {% endwith %}
-    </div>
+        <!-- Show flashed messages -->
+        <div class="flash">
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <div class="alert alert-warning">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        </div>
 
-    {% block content %} put your content here {% endblock %}
+        {% block content %} put your content here {% endblock %}
+    <!-- </div> -->
 </div>
 
 

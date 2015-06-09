@@ -3,9 +3,9 @@
 
 <!-- Search bar-->
 
-<div class='background-image'>
+<div class='search-div'>
     <div id='search-input-form'>
-		<form class="form-inline" id="user_book_query">
+		<form class="form-inline user_book_query">
 			<fieldset>
 			<!-- <legend class="col-sm-4">where are you going?</legend>
  -->
@@ -40,7 +40,7 @@
 		</fieldset>
 		</form>
   </div>  
-</div>
+
 
 
 <!-- Number of results -->		
@@ -50,15 +50,16 @@
 <!--tester -->
 <div id='demo'></div>		
 
-
+<div class='the-tabs'>
  <!-- Tabs -->
-
+<!-- <div id='scrollable-results'> -->
 <ul class="nav nav-tabs results-tabs" id='myTab' data-tabs='tabs'>
   <li role='presentation'class='active'><a href="#books" aria-controls='#books' role='tab' data-toggle="tab">book list</a></li>
   <li role='presentation'><a href="#kmeans" aria-controls='#kmeans' role='tab'data-toggle="tab">k-means</a></li>
   <li role='presentation'><a href="#venues" aria-controls='#venues' role='tab'data-toggle="tab">local wunders</a></li>
 </ul>
 
+<div id='scrollable-tab-contents'>
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" role='tabpanel' id="books">
   	<div class='row'id="book-result-div"></div>
@@ -74,9 +75,10 @@
     	
     </div>
   </div>
-</div>
-
-
+</div> <!--end of myTabContents -->
+</div> <!--endof scrollable-tab-contents -->
+<!-- </div> -->
+</div> <!--end of the-tabs -->
 
 
 
@@ -107,7 +109,7 @@
     </div>
   </div>
 </div>
-
+</div> 
 
 
 

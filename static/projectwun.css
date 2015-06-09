@@ -1,9 +1,9 @@
-.background-image {
+.search-div {
   font-family: Arial;
   color:white;
-  height:800px;
+  height:500px;
 }
-div.container {
+div#main-container {
   background-color: 'white';
   background-position: center;
   background-image:url("./img/photodune-4524905-book-l.jpg");
@@ -11,10 +11,21 @@ div.container {
   background-position: initial;
 }
 
-#search-input-form {
+.the-tabs {
+  height:500px;
+  /*overflow-y:scroll;*/
+}
+
+#books {
+  overflow-y:scroll;
+}
+/*.tab-content {
+  overflow-y: scroll;
+}*/
+.search-div .user_book_query {
   width:40%;
   margin:200px auto;
-  /*text-align:center;*/
+  text-align:center;
 }
 
 .get-books {
@@ -52,6 +63,12 @@ opacity: 0;
     -o-transition: opacity 2.25s linear;
        transition: opacity 2.25s linear;
 }*/
+
+div#myTabcontent {
+  overflow-y: scroll;
+  height:600px;
+
+}
 
 #loaderthingy {
     display: none;
@@ -100,10 +117,7 @@ opacity: 0;
 
 }*/
 
-/*#user_book_query {
-  position:relative;
-  padding: 5% 0;
-}*/
+
 
 /*#search-input-form {
   position:absolute;
