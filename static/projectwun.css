@@ -10,17 +10,23 @@ div#main-container {
   /*background-position: initial;*/
 }
 
-.the-tabs {
+#scrollable-tab-contents {
 
-  /*overflow-y:scroll;*/
 }
 
 #books {
   overflow-y:scroll;
 }
-/*.tab-content {
-  overflow-y: scroll;
+
+/*#myTab {
+  overflow-x:auto;
+  top:43.455px;
+  left:0;
+  right:0;
+  bottom:0;
+  position:absolute;
 }*/
+
 .search-div .user_book_query {
   width:40%;
   margin:200px auto;
@@ -29,18 +35,23 @@ div#main-container {
 
 .get-books {
   background-color: transparent;
-  color:'black';
+  color: rgb(166, 166, 166);
+
 }
 
 .get-books:hover {
-  background-color: #B2DFDB;
+  /*background-color: #B2DFDB;*/
+  color: #666666;
+  box-shadow: inset 0 -1px 0 #4C9696;
 }
-.navbar {
+#nav-header {
   background-color: transparent;
+  border: none;
+  -webkit-box-shadow: none; 
 }
 
 .book-thumbnail {
-  padding: 10px;
+  padding: 20px 5px;
   height: 220px;
 }
 
@@ -63,8 +74,10 @@ opacity: 0;
        transition: opacity 2.25s linear;
 }*/
 
-div#myTabcontent {
-  overflow-y: scroll;
+#myTabContent {
+  overflow: scroll;
+  height: 500px;
+ /* flex:1 1 auto;*/
   /*height:600px;*/
 
 }
@@ -79,27 +92,44 @@ div#myTabcontent {
                 no-repeat;
 }
 
+.the-tabs {
+    display: flex;
+    flex-direction:column;
+}
+
 .results-tabs {
     display:none;
+    flex: 0 0 auto;
 }
 
 .show {
     display:inline block;
 }
 
-/*.book-title {
-    word-wrap: normal;
-}*/
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus {
+  border: none;
+  -webkit-box-shadow: inset 0 -2px 0 #4C9696;
+  box-shadow: inset 0 -2px 0 #4C9696
+  color: #666666;
+}
 
-/*img.modal-cover {
-    width:50%;
-    height:auto;
-    float:left;
-}*/
+.nav-tabs>li>a, .nav-tabs>li>a:focus {
+  margin-right: 0;
+  background-color: transparent;
+  border: none;
+  color: #666666;
+  box-shadow: inset 0 -1px 0 #4C9696;
+  -o-transition: all 0.2s;
+  transition: all 0.2s;
+}
+
+.nav-tabs>li:hover {
+  background-color: #B2DFDB;
+}
 
 #map-canvas {
   width:100%;
-  height:480px;
+  height:450px;
 }
 
 /*#local_venues {
@@ -108,7 +138,9 @@ div#myTabcontent {
         padding: 0px
       }*/
 
-
+#myTab {
+  flex: 0 0 auto;
+}
 
 /*#book-search-submit-button {
 
@@ -117,38 +149,58 @@ div#myTabcontent {
 }*/
 
 
+/*#4C9696;*/
 
-/*#search-input-form {
-  position:absolute;
-  top:0;
-  bottom:0;
-  left:0;
-  right:0;
-  height:30%;
-  width:50%;
-  margin:auto;
-  padding: 10% 0;
+
+/*.form-control.active {
+  border-color: #B2DFDB
+  box-shadow: inset 0 -1px 0 #B2DFDB;
+  background-color: transparent;
+}*/
+
+
+textarea:focus, textarea.form-control:focus, input.form-control:focus, input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, input[type=number]:focus, [type=text].form-control:focus, [type=password].form-control:focus, [type=email].form-control:focus, [type=tel].form-control:focus, [contenteditable].form-control:focus {
+
+  box-shadow: inset 0 -2px 0 #4C9696;
 }
 
 .footer {
-   position:fixed;
-   left:0px;
-   bottom:0px;
-   height:50px;
-   width:100%;
-   background:#999;
-   background:url("./img/photodune-4524905-book-l.jpg");
-}*/
-
-/*#search-input {
-  background-color: transparent;
-  -webkit-box-shadow: none;
-  outline: -webkit-focus-ring-color auto 0px;
+  position:fixed;
+  left:0px;
+  bottom:0px;
+  height:30px;
+  width:0%;
+  background:url("./img/photodune-4524905-book-l.jpg") no-repeat center center fixed;
+  margin:200px auto;
+  text-align:center;
 }
 
-#radius-dropdown {
-  background-color: transparent;
-  -webkit-box-shadow: none;
-  outline: -webkit-focus-ring-color auto 0px;
+/*#search-input {
+  background: transparent;
+  -webkit-box-shadow: #B2DFDB;
+  outline: #B2DFDB auto 0px;
 }*/
+
+/*#search-input-autofill {
+  background-color:transparent !important;
+}*/
+
+input:-webkit-autofill {
+   background-color:transparent !important;
+}
+
+#radius-dropdown 
+#radius-dropdown > option.activate.open
+{
+  background-color: transparent;
+  -webkit-box-shadow: #4C9696;
+  outline: #4C9696 auto 0px;
+}
+
+ .navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #555555;
+    background-color: #e7e7e7;
+  }
 
