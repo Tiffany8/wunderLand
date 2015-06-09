@@ -17,6 +17,14 @@ div.container {
   /*text-align:center;*/
 }
 
+.get-books {
+  background-color: transparent;
+  color:'black';
+}
+
+.get-books:hover {
+  background-color: #B2DFDB;
+}
 .navbar {
   background-color: transparent;
 }
