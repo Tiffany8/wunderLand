@@ -1,18 +1,17 @@
 .search-div {
   font-family: Arial;
   color:white;
-  height:500px;
+  min-height:500px;
 }
 div#main-container {
   background-color: 'white';
-  background-position: center;
-  background-image:url("./img/photodune-4524905-book-l.jpg");
+  background:url("./img/photodune-4524905-book-l.jpg") no-repeat center center fixed;
   background-size:100%;
-  background-position: initial;
+  /*background-position: initial;*/
 }
 
 .the-tabs {
-  height:500px;
+
   /*overflow-y:scroll;*/
 }
 
@@ -66,7 +65,7 @@ opacity: 0;
 
 div#myTabcontent {
   overflow-y: scroll;
-  height:600px;
+  /*height:600px;*/
 
 }
 
