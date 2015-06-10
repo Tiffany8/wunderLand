@@ -32,6 +32,7 @@ from apiclient.discovery import build
 
 import geocoder
 from random_words import RandomWords
+from keyword_seeding_using_nltk import *
 
 
 # Note: you must run `source secrets.sh` before running this file
@@ -58,12 +59,12 @@ def book_database_seeding(google_api_key, apikey, query):
     """Main fuction that runs the helper functions below to
     search for books and seed the database with information. """
     response = google_book_search(query)
-    isbn_list = create_book_author_instance(response)
+    isbn_list, list_of_book_objects = create_book_author_instance(response)
     list_tuples_commknow_isbn = get_LT_book_info(apikey, isbn_list)
     create_location_instance(list_tuples_commknow_isbn)
     get_longitude_latitude_of_location()
-    db.session.commit()
     print "Querying and seeding complete"
+    return list_of_book_objects
 
 
 def google_book_search(query):
@@ -106,6 +107,7 @@ def google_book_search(query):
     # # key. The volumeInfo object is a dict with keys 'title' and 'authors'.
 def create_book_author_instance(response):
     isbn_list = []
+    list_of_book_objects = []
     #this "for loop" iterates through the response dictionary, which consists of books and a
     #dictionary of information about the books (volumeInfo) as the key and value pair
     for book_dict in response.get('items', []):
@@ -115,11 +117,9 @@ def create_book_author_instance(response):
             isbn_type = book_dict.get('volumeInfo', {}).get('industryIdentifiers')[0].get('type')
             isbn = book_dict.get('volumeInfo', {}).get("industryIdentifiers")[0].get('identifier')
             print isbn
+
             #Since the value could be "None", this "if" checks for an actual isbn value
 
-                #TODO -- I don't really want this because some isbns have letters at the end
-                #but don't want the non-isbn numbers "UCSC:..." or "STANFORD:..."
-                #regular expressions -- or make sure doesn't contain a colon...
             if isbn:
                 title = book_dict.get('volumeInfo', {}).get('title')
                 print "The title: ", title
@@ -143,17 +143,17 @@ def create_book_author_instance(response):
                 if publishedDate_unformated:
                     try:
                         if len(publishedDate_unformated)  > 8:
-                            publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m-%d")
+                            published_Date = datetime.strptime(publishedDate_unformated, "%Y-%m-%d")
                         elif len(publishedDate_unformated) < 5:
-                            publishedDate = datetime.strptime(publishedDate_unformated, "%Y")
+                            published_Date = datetime.strptime(publishedDate_unformated, "%Y")
                         else:
-                            publishedDate = datetime.strptime(publishedDate_unformated, "%Y-%m")
+                            published_Date = datetime.strptime(publishedDate_unformated, "%Y-%m")
                     except:
     
                         print "Publication date formating errors for: ", title
                     # print "Publication Date: ", publishedDate
                 else:
-                    publishedDate = None
+                    published_Date = None
 
                 previewLink = book_dict.get('volumeInfo', {}).get("previewLink")
                 print "PreviewLink: ", previewLink
@@ -167,7 +167,7 @@ def create_book_author_instance(response):
                             main_category = mainCategory,
                             thumbnail_url = thumbnail,
                             description = description,
-                            publication_date = publishedDate,
+                            publication_date = published_Date,
                             preview_link = previewLink,
                             page_count = pageCount,
                             ratings_count = ratingsCount,
@@ -175,6 +175,7 @@ def create_book_author_instance(response):
 
                 if not Book.query.get(book.isbn):
                     db.session.add(book)
+                    list_of_book_objects.append(book)
                     isbn_list.append(book.isbn)
                     print "an instance of a book created"
                     if bookauthors:
@@ -198,7 +199,7 @@ def create_book_author_instance(response):
     print isbn_list
     print "book instance creation complete"
 
-    return isbn_list
+    return isbn_list, list_of_book_objects
 
 
 
@@ -479,7 +480,9 @@ def command_line_query_loop():
             for a_name in name:
                 query = query + "inauthor:" + a_name + " "
             print query
-            book_database_seeding(google_api_key, apikey, query)
+            list_of_book_objects = book_database_seeding(google_api_key, apikey, query)
+            extracting_keywords_from_text(list_of_book_objects)
+            db.session.commit()
             total_query = total_query + max_results
             print total_query
             print "#" * 40

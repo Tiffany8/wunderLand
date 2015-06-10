@@ -80,15 +80,6 @@ def search_for_books():
 
     return jsonify(name = jsonify_search_result_list)
 
-# @app.route("/results")
-# def search_results_display():
-
-#     return render_template("searchresults.html")
-
-# @app.route("/search/kmeans", methods=["POST"])
-# def kmeans_results_display():
-
-#     return render_template("searchresults.html")
 
 @app.route("/search/kmeans")
 def get_kmeans():
@@ -143,11 +134,9 @@ def get_location_return_nearby_venues():
     latitude = flaskrequest.args.get('lat')
     print "lat", latitude
     longitude = flaskrequest.args.get('lon')
-    local_venues_dict = return_local_venues(latitude, longitude)
-    print local_venues_dict
-    pp = pprint.PrettyPrinter(indent=4)
+    local_venues_list = return_local_venues(latitude, longitude)
     
-    return jsonify(localVenues = local_venues_dict)
+    return jsonify(localVenues = local_venues_list)
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the point
