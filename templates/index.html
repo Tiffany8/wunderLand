@@ -3,23 +3,27 @@
 
 <!-- Search bar-->
 
+
+
 <div class='search-div'>
+
     <div id='search-input-form'>
-		<form class="form-inline user_book_query">
+		<form class="form-inline user_book_query" autocomplete="off">
+    <div id='wunderland_full'><img src='./static/img/wunderLand_fulltext.png'></div>
 			<fieldset>
 			<!-- <legend class="col-sm-4">where are you going?</legend>
  -->
 			<div class="form-group">
 				<label for="search-input" class="sr-only"></label>
 				<div class="col-sm-4" id='search-input-div'>
-					<input type="text" class="form-control" id="search-input" name="search-input" placeholder="location">
+					<input type="text" class="form-control" id="search-input" name="search-input" placeholder="where to?" font-family: 'Nixie One', cursive;>
 				</div>
 			</div>
 
 			<div class="form-group">
 				<div class="angela">
 				<!-- <label for="radius">radius</label> -->
-				<select class="form-control" name="radius">
+				<select class="form-control" name="radius" id='radius-dropdown'>
 					<option value="25">25 mi</option>
 					<option value="50">50 mi</option>
 					<option value="100">100 mi</option>
@@ -45,10 +49,10 @@
 
 <!-- Number of results -->		
 <div id="results-div" class="book-search-results"></div>
-		
+	
 
-<!--tester -->
-<div id='demo'></div>		
+
+
 
 <div class='the-tabs'>
  <!-- Tabs -->
@@ -62,7 +66,7 @@
 <div id='scrollable-tab-contents'>
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" role='tabpanel' id="books">
-  	<div class='row'id="book-result-div"></div>
+  	<div id='book-results-background'><div class='row'id="book-result-div"></div></div>
   </div>
 
   <div class="tab-pane fade" role='tabpanel' id="kmeans">
@@ -76,7 +80,7 @@
     </div>
   </div>
 </div> <!--end of myTabContents -->
-</div> <!--endof scrollable-tab-contents -->
+</div> <!--end of scrollable-tab-contents -->
 <!-- </div> -->
 </div> <!--end of the-tabs -->
 
@@ -93,8 +97,8 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel"><h4 class="book-title"></h4></h4>
-        <h5 class="modal-title"><h5 class="book-subtitle"></h5></h5>
+        <h3 class="modal-title" id="myModalLabel"><h3 class="book-title"></h3></h3>
+        <h4 class="modal-title"><h4 class="book-subtitle"></h4></h4>
         <h6 class="modal-title"><h6 class="book-author"></h6></h6>
       </div>
       <div class="modal-body">
@@ -103,8 +107,6 @@
         <div class="book-keywords"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary tester">Save changes</button>
       </div>
     </div>
   </div>

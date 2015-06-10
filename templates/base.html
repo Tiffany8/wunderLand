@@ -11,31 +11,29 @@
           href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.4/paper/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="./static/projectwun.css">
+    <link href='http://fonts.googleapis.com/css?family=Nixie+One|Fauna+One|Comfortaa|Enriqueta|Quattrocento|Cinzel|Goudy+Bookletter+1911' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
 <div class="container" id="main-container">
     <!-- <div class='background-image-container'> -->
             <!-- Static navbar -->
-        <nav class="navbar navbar-default">
-                <div class="navbar-header">
-                    <button type="button"
-                            class="navbar-toggle collapsed"
-                            data-toggle="collapse"
-                            data-target="#navbar"
-                            aria-expanded="false"
-                            aria-controls="navbar">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="/">wunderLand</a>
-                </div>
-                <nav class="navbar-right" id="navbar-search">
-                </nav>
-                
-            
+        <nav class="navbar navbar-default" id="nav-header">
+            <div class="navbar-header">
+                <button type="button"
+                        class="navbar-toggle collapsed"
+                        data-toggle="collapse"
+                        data-target="#navbar"
+                        aria-expanded="false"
+                        aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" id='logo' href="/"></a>
+            </div>
+            <nav class="navbar-right" id="navbar-search"></nav>
         </nav>
 
 
@@ -50,7 +48,7 @@
 
         {% block content %} put your content here {% endblock %}
     <!-- </div> -->
-</div>
+
 
 
 
@@ -61,11 +59,11 @@
   
     <div class="modal" id="loaderthingy"></div>
     <div class="footer">
-        <!--<script src="http://code.jquery.com/jquery.js"></script>-->
-        <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>-->
+       
         <script src="/static/projectwun.js"></script>
-    
+        
    
+    </div>
 </div>
 </body>
 

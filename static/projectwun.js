@@ -10,11 +10,15 @@ function getBookResults(evt) {
 
   var url = "/search?" + $('.user_book_query').serialize(); 
   $.get(url, function(json) { 
-
+    $('#logo').append('<img src="./static/img/wunderland_logo.png">');
+    var searchInput = $("#search-input").val();
+    var radius = $('radius-dropdown').val();
+    $('#wunderland_full').remove();
     var searchForm = $('#search-input-form').html();
     $('#search-input-form').remove();
     $('#navbar-search').append(searchForm);
-    $("#results-div").append("<div class='container'><p>Found " + json.name.length + " books associated with " + $("#search-input").val() + ".</p></div>"); 
+
+    $("#results-div").append("<p id='results-line'>Found <em>" + json.name.length + "</em> books associated with <em>" + searchInput + ".</p>"); 
     $('.results-tabs').addClass('show');
     for (var book=0; book <json.name.length; book++) {
      
@@ -42,7 +46,7 @@ function getBookResults(evt) {
       var keywords = ($(this).data("keywords")).split(",");
       for (var word=0; word<keywords.length; word++) {
         // var keywordUrl = "/keyword/" + $(keyword[word]).serialize.();
-        $(".book-keywords").append('<button type="button" class="btn btn-success btn-xs tester keywordbutton" data-key="' +
+        $(".book-keywords").append('<button type="button" class="btn btn-xs tester keywordbutton" data-key="' +
           keywords[word] + '">' + keywords[word] + "</button>" + " ")
    
       }
@@ -81,8 +85,8 @@ $(document).on('click', '.keywordbutton', function() {
     // $('#results-div').empty();
     // $('#book-result-div').empty();
 
-    $("#results-div").append("<div class='container'><p>Found " + json.keywordbooks.length + 
-    " books associated with " + keyword + ".</p></div>"); 
+    $("#results-div").append("<p id='keyword-line'>Found <em>" + json.keywordbooks.length + 
+    "</em> books associated with <em>" + keyword + "</em>.</p>"); 
 
     $('.results-tabs').addClass('show');
 
@@ -410,8 +414,8 @@ $(document).ready(function () {
   console.log("what'sup");
   });
 
-  $('#books').scroll();
-  $("#books").animate({ scrollTop: 1000 }, 2000);
+  // $('#books').scroll();
+  // $("#books").animate({ scrollTop: 1000 }, 2000);
 
   
 
