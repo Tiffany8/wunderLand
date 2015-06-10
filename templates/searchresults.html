@@ -1,17 +1,53 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>wunderLand</h1>
+<div id="results-div" class="book-search-results"></div>
 
-<div id='results-div'></div>
 
-<div id='book-result-div' class="book-search-results"></div>
+<ul class="nav nav-tabs" id='myTab' data-tabs='tabs'>
+  <li role='presentation'class='active'><a href="#books" aria-controls='#books' role='tab' data-toggle="tab">Book List</a></li>
+  <li role='presentation'><a href="#kmeans" aria-controls='#kmeans' role='tab'data-toggle="tab">K-Means</a></li>
+</ul>
 
-<script src="/static/projectwun.js"></script>
+<div id="myTabContent" class="tab-content">
+  <div class="tab-pane fade active in" role='tabpanel' id="books">
+  	<div id="book-result-div"></div>
+  </div>
 
-<div class="footer">
-
+  <div class="tab-pane fade" role='tabpanel' id="kmeans">
+    <div id='kmeans_graph'></div>
+  </div>
 </div>
+
+
+
+
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel"><h4 class="book-title"></h4></h4>
+      </div>
+      <div class="modal-body">
+        <div class="book-keywords"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
 
 
 {% endblock %}
