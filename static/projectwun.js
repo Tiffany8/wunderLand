@@ -11,6 +11,7 @@ function getBookResults(evt) {
   var url = "/search?" + $('.user_book_query').serialize(); 
   $.get(url, function(json) { 
     $('#logo').append('<img src="./static/img/wunderland_logo.png">');
+    $('#book-results-background').show();
     var searchInput = $("#search-input").val();
     var radius = $('radius-dropdown').val();
     $('#wunderland_full').remove();
@@ -72,7 +73,7 @@ $(document).on('click', '.keywordbutton', function() {
   $('#results-div').empty();
   $('#book-result-div').empty();
 
-  console.log("helelloeoeoeoooo")
+
   var keyword = $(this).data('key');
   var url = "/keyword?keyword=" + keyword
   
@@ -81,9 +82,6 @@ $(document).on('click', '.keywordbutton', function() {
 
   $.get(url, function(json) {
 
-    // evt.preventDefault();
-    // $('#results-div').empty();
-    // $('#book-result-div').empty();
 
     $("#results-div").append("<p id='keyword-line'>Found <em>" + json.keywordbooks.length + 
     "</em> books associated with <em>" + keyword + "</em>.</p>"); 
@@ -293,52 +291,6 @@ function initialize(coords, bookStores) {
   
 }; //end of the initialize function
 
-// function setMarkers(map, locations) {
-//   // Add markers to the map
-
-//   // Marker sizes are expressed as a Size of X,Y
-//   // where the origin of the image (0,0) is located
-//   // in the top left of the image.
-
-//   // Origins, anchor positions and coordinates of the marker
-//   // increase in the X direction to the right and in
-//   // the Y direction down.
-//   var image = {
-//     url: 'img/noun_61286_cc.svg',
-//     // This marker is 20 pixels wide by 32 pixels tall.
-//     size: new google.maps.Size(20, 32),
-//     // The origin for this image is 0,0.
-//     origin: new google.maps.Point(0,0),
-//     // The anchor for this image is the base of the flagpole at 0,32.
-//     anchor: new google.maps.Point(0, 32)
-//   };
-//   // Shapes define the clickable region of the icon.
-//   // The type defines an HTML &lt;area&gt; element 'poly' which
-//   // traces out a polygon as a series of X,Y points. The final
-//   // coordinate closes the poly by connecting to the first
-//   // coordinate.
-//   var shape = {
-//       coords: [1, 1, 1, 20, 18, 20, 18 , 1],
-//       type: 'poly'
-//   };
-//   for (var i = 0; i < locations.length; i++) {
-//     var bookstore = locations[i];
-//     var myLatLng = new google.maps.LatLng(bookstore[1], bookstore[2]);
-//     var marker = new google.maps.Marker({
-//         position: myLatLng,
-//         map: map,
-//         icon: image,
-//         shape: shape,
-//         title: bookstore[0],
-//         zIndex: bookstore[3]
-//     });
-//   }
-// }
-
-
-
-//
-
 
 
 // DOCUMENT READY 
@@ -346,7 +298,7 @@ $(document).ready(function () {
   $('.user_book_query').on('submit', getBookResults);
   $('.user_book_query').on('submit', getKMeansResults);
   
-
+  
   $('.user_book_query').on('submit', function() {
 
   if (navigator.geolocation) {
@@ -401,23 +353,9 @@ $(document).ready(function () {
       clearTimeout(timer);
   });
 
-  // $('.keyword').on('click', getKeywordBooks);
-  // $(document).on('click', '.keywordbutton', function(event) {
-  //   alert("hello");
-
-  // });
-
-  // $('.keywordbutton').on('click', function() {
-  //   console.log('anybody here')
-  // })
   $('.tester').on('click', function() {
   console.log("what'sup");
   });
-
-  // $('#books').scroll();
-  // $("#books").animate({ scrollTop: 1000 }, 2000);
-
-  
 
 
 }) // END
