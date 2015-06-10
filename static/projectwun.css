@@ -11,7 +11,8 @@ div#main-container {
   background-color: 'white';
   background:url("./img/photodune-4524905-book-l.jpg") no-repeat center center fixed;
   background-size:100%;
-    font-family: 'Quattrocento', serif;
+  font-family: 'Quattrocento', serif;
+  min-height:750px;
   /*background-position: initial;*/
 }
 
@@ -48,15 +49,18 @@ div#main-container {
   text-align:center;
 }
 
+
 .get-books {
   background-color: transparent;
-  color: rgb(166, 166, 166);
+  color: #666666;
   font-family: 'Nixie One', cursive;
 
 }
-
+.row {
+  margin-left:70px;
+}
 .get-books:hover {
-  /*background-color: #B2DFDB;*/
+  background-color: #B2DFDB;
   color: #666666;
   box-shadow: inset 0 -1px 0 #4C9696;
 }
@@ -68,17 +72,19 @@ div#main-container {
 
 
 #book-results-background {
+  display:none;
   background:url('./img/sprinkles.png') no-repeat center center fixed;
   background-size:100%;
   padding-bottom: 30px;
   width: 90%;
-  margin-left: 50px;
+  margin-left: 60px;
 }
 }
 
 #book-result-div {
   margin-left:100px;
   font-family: 'Nixie One', cursive;
+    padding-left: 70px;
 }
 
 
@@ -105,7 +111,7 @@ text.mpld3-text, div.mpld3-tooltip {
 g.mpld3-xaxis, g.mpld3-yaxis {
 display: none; }
 
-svg.mpld3-figure {
+svg .mpld3-figure {
 margin-left: 0px;
 }
 
@@ -164,7 +170,7 @@ opacity: 0;
   box-shadow: inset 0 -2px 0 #4C9696,
 }
 
-.nav-tabs>li>a, .nav-tabs>li>a:focus {
+.nav-tabs>li>a, .nav-tabs>li>a:focus, .nav-tabs>li:hover {
   margin-right: 0;
   background-color: transparent;
   border: none;
@@ -176,10 +182,10 @@ opacity: 0;
   font-weight:bolder;
 }
 
-.nav-tabs>li:hover {
+/*.nav-tabs>li:hover {
   background-color: #B2DFDB;
   color:#666666;
-}
+}*/
 
 #map-canvas {
   width:100%;
@@ -246,16 +252,18 @@ textarea:focus, textarea.form-control:focus, input.form-control:focus, input[typ
 }*/
 
 input:-webkit-autofill {
-   background-color:transparent !important;
-     font-family: 'Quattrocento', serif;
+  background-color:transparent !important;
+  font-family: 'Quattrocento', serif;
 }
 
 ::-webkit-input-placeholder { /* WebKit browsers */
-    color:    #666666;
+    color: #666666;
 }
 
 #radius-dropdown 
-#radius-dropdown > option.activate.open
+#radius-dropdown .open > .activate {
+  box-shadow: inset 0 -1px 0 #ddd;
+}
 {
   background-color: transparent;
   -webkit-box-shadow: #4C9696;
@@ -307,6 +315,12 @@ input:-webkit-autofill {
 
 }
 
+.book-subtitle {
+  text-align: center;
+  font-weight: bolder;
+  font-family: 'Quattrocento', serif;
+}
+
 #results-line {
     font-family: 'Quattrocento', serif;
   margin: 0 0 1em;
@@ -316,7 +330,7 @@ input:-webkit-autofill {
 }
 
 #keyword-line {
-    font-family: 'Quattrocento', serif;
+  font-family: 'Quattrocento', serif;
   margin: 0 0 1em;
   font-weight: bold;
   color: #000000;
@@ -328,3 +342,16 @@ input:-webkit-autofill {
   width: 25%;
   padding-left: 68px;
 }
+
+text[@x=-140] {
+  display:none;
+}
+
+.form-control::-webkit-input-placeholder { 
+  color: #666666; 
+  font-family: 'Quattrocento', serif;
+  font-style:italic;
+}
+.form-control:-moz-placeholder { color: #666666; }
+.form-control::-moz-placeholder { color: #666666; }
+.form-control:-ms-input-placeholder { color: #666666; }
