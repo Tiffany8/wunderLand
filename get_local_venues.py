@@ -40,6 +40,7 @@ def parse_local_venues(local_venues):
 	ns={'lt':'http://www.librarything.com/'}
 	places = root.findall('./lt:ltml/lt:itemList/lt:item', ns)
 	for item in places:
+		local_venues_dict = {}
 		name = item.find('lt:name', ns).text
 		website = item.find('lt:officialSite',ns).text
 		latitude = item.find('lt:location/lt:lat',ns).text

@@ -82,7 +82,11 @@ def search_for_books():
 
 
 @app.route("/search/kmeans")
-def get_kmeans():
+def get_kmeans_graph():
+    """GETs user location query, runs location through a Location class function called 'get books 
+    associated with location' from my Model.py and returns a list of book objects associated with a 
+    location with the user's input radius.  Books are filtered out based on whether they have a description
+    longer than 20 words."""
     user_location_query = flaskrequest.args.get('search-input')
     print "user_location_query for get kmeans", user_location_query
     radius = flaskrequest.args.get('radius')
@@ -91,13 +95,15 @@ def get_kmeans():
     book_obj_list = [book_obj for book_obj in book_obj_list if book_obj.description]
     book_obj_list = [book_obj for book_obj in book_obj_list if len(book_obj.description.split(" ")) > 20]
     # from the book_cosine_similarity file
-    kmeans_cluster_html = main_func(book_obj_list) # kmeans result
+    kmeans_cluster_html = returns_kmeans_cluster_graph(book_obj_list) # kmeans result
     return jsonify(kmeans = kmeans_cluster_html)
 
 
 @app.route("/keyword", methods=["GET"])
 def books_associated_with_keyword_page():
-
+    """GET request from clicking on keyword, keyword is used to query database for other books
+    associated with the keyword and returns info in a ajax GET in the form a jsonified list of dictionaries
+    containing info on each book. """
     keyword = flaskrequest.args.get('keyword')
 
     jsonify_search_result_list = []
@@ -131,11 +137,12 @@ def books_associated_with_keyword_page():
 
 @app.route('/location', methods=['GET'])
 def get_location_return_nearby_venues():
+    """GET request takes user location in form of latitude and longitude, passes through 'return local veunes'
+    function in the get_local_venues.py file and returns a list of dictionaries containing info on local bookstores
+    within a 3 mi radius."""
     latitude = flaskrequest.args.get('lat')
-    print "lat", latitude
     longitude = flaskrequest.args.get('lon')
     local_venues_list = return_local_venues(latitude, longitude)
-    
     return jsonify(localVenues = local_venues_list)
 
 if __name__ == "__main__":
