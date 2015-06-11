@@ -11,7 +11,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 import datetime
 
-# from __future__ import print_function
 import numpy as np
 import pandas as pd
 import nltk
@@ -26,19 +25,17 @@ import matplotlib as mpl
 from sklearn.manifold import MDS
 from sklearn.metrics.pairwise import cosine_similarity
 from pylab import *
-#filter out books with no location and no description
-#generate a dictionary of ALL token words and values => book_objs with those words in description
-#do cosine similiarty only on books that only have tokens in common
-    ## TF threshold / TF-IDF threshold to weed out common, non-stopword words
 
 
 
-def main_func(list_of_book_objects):
-    # current_time = datetime.datetime.utcnow()
-    # onehund_weeks_ago = current_time - datetime.timedelta(weeks=200)
-    # list_of_book_objects = Book.query.filter(Book.publication_date > onehund_weeks_ago).all()
-    # list_of_book_objects = Book.query.filter(Book.title.ilike('war%')).all()
-    # list_of_book_objects = Location.get_books_associated_with_location(100, "Los Angeles")
+
+def returns_kmeans_cluster_graph(list_of_book_objects):
+    """This function receives a list of book objects from the database that are generated from a user's search query.
+    The book objects have a description attribute.  Each book description is tokenized (bag of words), lemmatized (grouping 
+    together different forms of a word e.g. "walking", "walks", "walker" --> "walk", the bag of words are stored in  dictionary 
+    as values with their book object stored as the value.  This information is passed along to the kmeans cluster function which         
+    evaluates the bag of words for each book, ultimately generating clusters of 'like' books. """
+    
     list_of_book_objects = [book_obj for book_obj in list_of_book_objects if book_obj.description]
     
     print "NUMBER OF BOOKS, ", len(list_of_book_objects)
@@ -46,42 +43,30 @@ def main_func(list_of_book_objects):
     for book_obj in list_of_book_objects:
 
         if book_obj.description:
-            # print "book title: ", book_obj.title
+           
             book_description = book_obj.description
-            stemmed_tokens = get_tokens(book_description)
-            # print "STEMMED-tokens ", stemmed_tokens
-            # book_descrip_stripped = get_tokens(book_obj)
-            # print "tokens list: ", len(book_descrip_stripped), book_descrip_stripped
-            # print "#" * 20
-            # print "#" * 20
-            # stemmed_tokens = stem_tokens(book_descrip_stripped)
-
-            # print "stemmed tokens", stemmed_tokens
-            # print "#" * 20
-            bookobj_tokens_dict[book_obj] = stemmed_tokens
+            lemmatized_word = get_tokens(book_description)
+            bookobj_tokens_dict[book_obj] = lemmatized_word
 
     kmeans_variables = tfidf_similarity(bookobj_tokens_dict)
-    # km, dist, num_clusters = kmeans_cluster(*kmeans_variables)
     kmeans_cluster_graph_html = kmeans_cluster(*kmeans_variables)
 
-    # graph_values, graph_keys = get_top_terms_per_cluster(km, bookobj_tokens_dict, num_clusters)
-    # kmeans_cluster_graph_html = multi_diminsional_scaling_for_2D_array(dist, graph_values, graph_keys)
     return kmeans_cluster_graph_html
 
 def get_tokens(book_description):
     """Take book description, strip of punctuation, lowercase, and split/token into individual
-    words. """
+    words, filters out stop words, lemmatize, and returns a 'bag of words' for each book."""
 
     #remove all punctuation except ' and - and lowercases words
     book_descrip_no_punc = re.split(r"[^\w]", book_description.lower()) 
     # print "BOOK DESCRIP NO PUNC", book_descrip_no_punc
     token_list_filtered = remove_stopwords(book_descrip_no_punc)
-    stemmed_tokens = stem_tokens(token_list_filtered)
+    lemmatized_word = lemmatize_words(token_list_filtered)
     # return book_descrip_no_punc
-    return stemmed_tokens
+    return lemmatized_word
 
 def remove_stopwords(book_descrip_stripped):
-    """Remove the stopwords from the list of tokens. """
+    """Removes the stopwords from the list of tokens. """
     lemmatizer = nltk.WordNetLemmatizer()
     my_stopwords = ['author', 'book', 'chapter', 'edition', 'read', 'novel']
     token_list_filtered = [word for word in book_descrip_stripped if not word in stopwords.words('english')]
@@ -90,43 +75,41 @@ def remove_stopwords(book_descrip_stripped):
     
     return token_list_filtered
 
-def stem_tokens(token_list_filtered):
-    """Stem the tokens. """
-    # print "TOKENS LIST", book_descrip_stripped
-    # print "TOKENS LIST TYPE", type(book_descrip_stripped), len(book_descrip_stripped)
-    # tokens_list_filtered = remove_stopwords(book_descrip_stripped)
-    # print "TOKENS LIST FILTERED", tokens_list_filtered
-    # print "TOKENS LIST FILTERED", type(tokens_list_filtered), len(tokens_list_filtered)
-    stemmer = nltk.stem.porter.PorterStemmer()
+def lemmatize_words(token_list_filtered):
+    """Lemmatizes the tokens. """
+
     lemmatizer = nltk.WordNetLemmatizer()
-    # stemmed_tokens = [stemmer.stem_word(word) for word in token_list_filtered]
-    stemmed_tokens = [lemmatizer.lemmatize(word) for word in token_list_filtered]
-    # print "STEMMED TOKENS,", stemmed_tokens
-    stemmed_tokens = filter(None, stemmed_tokens)
-    # print "STEMMED TOKENS 2", stemmed_tokens
-    return stemmed_tokens
+   
+    lemmatized_word = [lemmatizer.lemmatize(word) for word in token_list_filtered]
+    
+    lemmatized_word = filter(None, lemmatized_word)
+   
+    return lemmatized_word
 
 def tfidf_similarity(bookobj_tokens_dict):
+    """TFIDF = Term Frequency - Inverse Document Frequency.  This function creates a numerical representation of 
+    a each word/token, ranking it based on its frequency within a body of work and across the collection.  The 
+    higher the frequency within a document AND across the collection, the lower the ranking.  The higher the frequency 
+    within a document, compared to across the collection, the higher the ranking of that word within the document.  SciKitLearn
+    used to create tfidf matrix from the collection of documents in the dictionary."""
 
-    #####################################
-    ### TFIDF and Document Similarity ###
-    #####################################
     books_dict = bookobj_tokens_dict.items()
     
     titles = [book[0].title.encode('utf-8') for book in books_dict]
     
     description_tokens = [book[0].description for book in books_dict]
 
-    # # max_df -- max frequency within document a fiven feaeture can have to be in matrix;
+    # # max_df -- max frequency within document a given feature can have to be in matrix;
     # # if > 80% in a document, carries less meaning
     # # min_idf --if an integer, then the term has to be in at least 'X' integer documents to be 
     # # considerd. 0.2 means it needs to be in at least 20% of documents
-    # # ngram)range -- means to look at unigrams, bigrams, and trigrams
+    # # ngram range -- means to look at unigrams, bigrams, and trigrams
+    # # tfidf vectorizer 
     tfidf_vectorizer = TfidfVectorizer(max_df=0.5, max_features=200000,
                                  min_df=0.2, stop_words='english',
                                  use_idf=True, tokenizer=get_tokens, ngram_range=(1,3))
     
-    
+    # # running the collection of documents/descriptions through the vectorizer to generate the matrix
     tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
 
     # # terms is a list of features used in the tf-idf matrix
@@ -135,6 +118,8 @@ def tfidf_similarity(bookobj_tokens_dict):
     return terms, description_tokens, tfidf_matrix, titles, bookobj_tokens_dict
 
 def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_tokens_dict):
+    """Kmeans algorithm used to create clusters of documents using scikitlearn.  Datapoints plotted
+    using matplotlibd3."""
     ######################
     ### KMeans Cluster ###
     ######################
@@ -145,20 +130,8 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     # #cosine distance which I will use for plotting on a euclidean (2-dimensional) plane.
     dist = 1 - cosine_similarity(tfidf_matrix)
     
-    # if len(bookobj_tokens_dict.keys()) <= 15:
-    #     num_clusters = 3
-    #     cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3'}
-    # elif len(bookobj_tokens_dict.keys()) >= 30:
-    #     num_cluster = 8
-    #     cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', 
-    #                 5:'#F7EC45', 6:'#2ee3b6', 7:'#cd82c0'}
-    # else:
-    #     num_clusters = 5
-    #     cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e'}
-    
     num_clusters = 8
-    cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', 
-                    5:'#F7EC45', 6:'#2ee3b6', 7:'#cd82c0'}
+    
     km = KMeans(n_clusters = num_clusters)
     km.fit(tfidf_matrix)
     clusters = km.labels_.tolist()
@@ -172,10 +145,6 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     frame['cluster'].value_counts()
     grouped = frame['title'].groupby(frame['cluster'])
 
-    # return km, dist, num_clusters
-
-    
-# def get_top_terms_per_cluster(km, bookobj_tokens_dict, num_clusters):
     #############################
     ### Top Terms Per Cluster ###
     #############################
@@ -183,16 +152,12 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     print 
     order_centroids = km.cluster_centers_.argsort()[:, ::-1]
     print "order centroids, ", order_centroids
-    
-    ##vocab frame --- don't understand yet
     totalvocab_tokenized_list = [word for token_sublist in bookobj_tokens_dict.values() for word in token_sublist]
     print "total vocab tokenized list, ", totalvocab_tokenized_list
     vocab_frame = pd.DataFrame({'words': totalvocab_tokenized_list}, index=totalvocab_tokenized_list)
     print 'there are ' + str(vocab_frame.shape[0]) + ' items in vocab_frame'
     print "num cluster, ", num_clusters
     print "values, ", frame.ix
-    # print [i for i in range(num_clusters)]
-    # print [vocab_frame.ix[terms[index].split(' ')].values.tolist()[0][0].encode('utf-8','ignore') for index in order_centroids[i, :3] for i in range(num_clusters)]
     print order_centroids
 
     graph_keys = [i for i in range(num_clusters)]
@@ -201,7 +166,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
         print "Cluster %d words:" % i
         the_terms = []
 
-        for ind in order_centroids[i, :3]: # top 5 words that are nearest to the cluster centroid
+        for ind in order_centroids[i, :3]: # top 3 words that are nearest to the cluster centroid
             
             graph_terms = vocab_frame.ix[terms[ind].split(' ')].values.tolist()[0][0].encode('utf-8','ignore')
             the_terms.append(graph_terms)
@@ -213,7 +178,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
         print
         print
         print "Cluster %d titles:" % i
-        # import pdb; pdb.set_trace()
+    
         df = frame.ix[i]['title']
         if type(df) is str:
             print ' %s,' % df
@@ -223,8 +188,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
         print 
         print
     print "graph values ", graph_values
-    # return graph_values, graph_keys
-
+    
     # def multi_diminsional_scaling_for_2D_array(dist, graph_values, graph_keys):
     #################################
     ### Multi-Dimensional Scaling ###
@@ -247,8 +211,8 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     #################################
 
     # #set up colors per clusters using a dict
-    
-    # cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', , 8:'#a6efa4'}
+    cluster_colors = {0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a', 4: '#66a61e', 
+                    5:'#F7EC45', 6:'#2ee3b6', 7:'#cd82c0'}    
 
     # #set up cluster names using a dict
     graph_values = [", ".join(term_list) for term_list in graph_values]
@@ -256,13 +220,13 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     print "cluster names dictionary, ", cluster_names
 
 
-    #create data frame that has the result of the MDS plus the cluster numbers and titles
+    # # create data frame that has the result of the MDS plus the cluster numbers and titles
     df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=titles)) 
 
-    #group by cluster
+    #g #roup by cluster
     groups = df.groupby('label')
 
-    #define custom css to format the font and to remove the axis labeling
+    # #define custom css to format the font and to remove the axis labeling
     css = """
     text.mpld3-text, div.mpld3-tooltip {
       font-family:Arial, Helvetica, sans-serif;
@@ -273,7 +237,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     margin-left: 0px;}
     """
 
-    # Plot 
+    # Ploting using matplotlib
     fig, ax = plt.subplots(figsize=(14,6)) #set plot size
     ax.margins(0.03) # Optional, just adds 5% padding to the autoscaling
 
@@ -286,7 +250,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
         ax.set_aspect('auto')
         labels = [i for i in group.title]
         
-        #set tooltip using points, labels and the already defined 'css'
+        #set tooltip using points, labels and the already defined 'css' - see above
         tooltip = mpld3.plugins.PointHTMLTooltip(points[0], labels,
                                            voffset=10, hoffset=10, css=css)
         #connect tooltip to fig
@@ -309,7 +273,6 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     kmeans_cluster_graph_html = mpld3.fig_to_html(fig)
     
     return kmeans_cluster_graph_html
-
 
 #define custom toolbar location
 class TopToolbar(mpld3.plugins.PluginBase):
@@ -344,5 +307,5 @@ class TopToolbar(mpld3.plugins.PluginBase):
 if __name__ == "__main__":
     connect_to_db(app)
     db.create_all()
-    main_func(list_of_book_objects)
+    returns_kmeans_cluster_graph(list_of_book_objects)
     # cosine_similarity = cosine_similarity(bookobj_tokens_dict)
