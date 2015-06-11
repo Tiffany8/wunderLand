@@ -4,8 +4,6 @@ function getBookResults(evt) {
   evt.preventDefault();
   $('#results-div').empty();
   $('#book-result-div').empty();
-
-    // With JQuery
   
 
   var url = "/search?" + $('.user_book_query').serialize(); 
@@ -35,6 +33,7 @@ function getBookResults(evt) {
       );   
     }
 
+    //click event added to each book thumbnail, renders a modal with book info, including the keywords
     $(".book-thumbnail").click(function() {
       
       $('.book-title').empty();
@@ -60,10 +59,7 @@ function getBookResults(evt) {
     }); 
     
   });
-}
-
-// The end of getBookResults //
-
+} // The end of getBookResults //
 
 
 // Part 2: Get Keyword Associated Books
@@ -73,15 +69,10 @@ $(document).on('click', '.keywordbutton', function() {
   $('#results-div').empty();
   $('#book-result-div').empty();
 
-
   var keyword = $(this).data('key');
   var url = "/keyword?keyword=" + keyword
-  
-  console.log(keyword)
-  console.log(url)
 
   $.get(url, function(json) {
-
 
     $("#results-div").append("<p id='keyword-line'>Found <em>" + json.keywordbooks.length + 
     "</em> books associated with <em>" + keyword + "</em>.</p>"); 
@@ -99,7 +90,7 @@ $(document).on('click', '.keywordbutton', function() {
          json.keywordbooks[book].description +'" data-author="' + 
          json.keywordbooks[book].authors + '" src="' + 
          json.keywordbooks[book].thumbnailUrl + '"></a></div>'
-      );   // append closer
+      );   // end of book result div appending 
 
       $(".book-thumbnail").click(function() {
       
@@ -112,11 +103,11 @@ $(document).on('click', '.keywordbutton', function() {
 
       var keywords = ($(this).data("keywords")).split(",");
       for (var word=0; word<keywords.length; word++) {
-        // var keywordUrl = "/keyword/" + $(keyword[word]).serialize.();
+    
         $(".book-keywords").append('<button type="button" class="btn btn-success btn-xs tester keywordbutton" data-key="' +
           keywords[word] + '">' + keywords[word] + "</button>" + " ")
-   
       }
+
       $(".book-title").append($(this).data("title"));
       $('.book-subtitle').append($(this).data('subtitle'));
       $('.book-author').append($(this).data('author'));
@@ -130,22 +121,7 @@ $(document).on('click', '.keywordbutton', function() {
 // }    // outermost bracket
 
 
-
-
-
-function getModalInfoForEachBook(evt) {
-  console.log("something there")
-  $('.book-title').empty();
-  $('.book-keywords').empty();
-
-  var url='/search?' + $('.user_book_query').serialize();
-
-  $.get(url, function(json) {
-    console.log(json)
-  })
-}
-
-
+// Part 3: Get Kmeans info from server to display
 function getKMeansResults(evt) {
   evt.preventDefault();
   $('#results-div').empty();
@@ -161,19 +137,18 @@ function getKMeansResults(evt) {
 }
 
 
-// Part 3: Geolocation for LocalVenues
-
-
-
-function successFunction(position) { 
+// Part 4a: Geolocation using Google Geolocation API for "local wunders"
+// If geolocation is enabled on user's browser, this function obtains user location info
+//and passes to the LibraryThing API on the server side and returns local bookstores
+function getUserLocation(position) { 
   $('#local_venues').empty();
     var lat = position.coords.latitude;
     var lon = position.coords.longitude;
     var url = "/location?lat=" + lat + "&" + "lon=" + lon
     console.log('Your latitude is :'+lat+' and longitude is '+lon);
+
     var coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-    
-    
+      
   $.get(url, function(json) {
     console.log(json.localVenues)
     var bookStores = json.localVenues
@@ -184,7 +159,7 @@ function successFunction(position) {
     console.log(bookStores)
   }); //end of get   
   
-} // end of successFunction
+} // end of getUserLocation
 
 function errorFunction(position) {
   $('#local_venues').empty();
@@ -192,16 +167,13 @@ function errorFunction(position) {
 }
 
 
-// Google Custom Map
+// 4b. Google Map and Map Customization
 
-  
-
+//Map styling using snazzymaps.com
 var styles = [{"stylers":[{"saturation":-100}]},{"featureType":"water","elementType":"geometry.fill","stylers":[{"color":"#0099dd"}]},
 {"elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.park","elementType":"geometry.fill","stylers":[{"color":"#aadd55"}]},
 {"featureType":"road.highway","elementType":"labels","stylers":[{"visibility":"on"}]},{"featureType":"road.arterial","elementType":"labels.text","stylers":[{"visibility":"on"}]},
 {"featureType":"road.local","elementType":"labels.text","stylers":[{"visibility":"on"}]},{}];
-
-
 
 function initialize(coords, bookStores) {
   console.log("in initialize")
@@ -218,8 +190,7 @@ function initialize(coords, bookStores) {
       mapTypeId:google.maps.MapTypeId.ROADMAP
   };
 
-  // Add markers to the map
-
+  // Add markers to the map:
   // Marker sizes are expressed as a Size of X,Y
   // where the origin of the image (0,0) is located
   // in the top left of the image.
@@ -241,7 +212,7 @@ function initialize(coords, bookStores) {
     anchor: new google.maps.Point(0,32)
   };
   // Shapes define the clickable region of the icon.
-  // The type defines an HTML &lt;area&gt; element 'poly' which
+  // The type defines an HTML area element 'poly' which
   // traces out a polygon as a series of X,Y points. The final
   // coordinate closes the poly by connecting to the first
   // coordinate.
@@ -264,9 +235,6 @@ function initialize(coords, bookStores) {
         title: bookstore[0],
         website: bookstore[4],
         zIndex: bookstore[3]
-    
-
-
     }); //end of marker creation
   } //end of bookSTore for loop
 
@@ -278,22 +246,17 @@ function initialize(coords, bookStores) {
   for (var i = 0; i < markers.length; i++) {
 
     var marker = markers[i];
-      google.maps.event.addListener(marker, 'click', function () {
-
+    google.maps.event.addListener(marker, 'click', function () {
       // where I have added .html to the marker object.
       infowindow.setContent(this.html);
       infowindow.open(map, this);
     }); //end of addlistener for marker
-    
-  } //end of for loop for markers.length
-
-
-  
+  } //end of for loop for markers.length  
 }; //end of the initialize function
 
 
 
-// DOCUMENT READY 
+// DOCUMENT READY - all of these functions are run upon loading the page
 $(document).ready(function () {
   $('.user_book_query').on('submit', getBookResults);
   $('.user_book_query').on('submit', getKMeansResults);
@@ -302,13 +265,12 @@ $(document).ready(function () {
   $('.user_book_query').on('submit', function() {
 
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(successFunction);
+    navigator.geolocation.getCurrentPosition(getUserLocation);
 
   } else {
     flash('It seems like Geolocation, which is required for this page, is not enabled in your browser. Please use a browser which supports it.');
   }
   }); // geolocation test
-
 
   $('#books').tab('show');
 
@@ -326,9 +288,6 @@ $(document).ready(function () {
     e.preventDefault()
     $(this).tab('show')
   });
-
-
-
 
   // The timer for the loading screen - starts 1000 ms after call
   $(document).ajaxStart(function () {
@@ -356,8 +315,6 @@ $(document).ready(function () {
   $('.tester').on('click', function() {
   console.log("what'sup");
   });
-
-
 }) // END
 
 
