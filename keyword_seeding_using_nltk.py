@@ -6,19 +6,21 @@
 import nltk
 from nltk.corpus import stopwords
 from collections import Counter
-from server import app
-from model import Book, Author, Location, Category, Event, Award, connect_to_db, db
+
+from model import Book, Author, Location, Category, Event, Award, Keyword, connect_to_db, db
 import pprint
 from flask_sqlalchemy import SQLAlchemy
 import re
+import datetime
 
-pp = pprint.PrettyPrinter(indent=4)
 
-def extracting_keywords_from_text():
-    list_of_book_objects = Book.query.filter(Book.title.ilike('war%')).all()
+def extracting_keywords_from_text(list_of_book_objects):
+    """ Takes a list of book objects, and if the book has a description, create keyword and keyword phrases
+    and store the top twenty in the local database.  Keyword and keyword phrases are stored in a keyword 
+    table as well as a keyword-book association table."""
+    
 
     for book_obj in list_of_book_objects:
-        # description = book_obj.description
         if book_obj.description:
             print "book: ", book_obj.title, "description: ", book_obj.description
             tree = tokenize_tag_text(book_obj.description)
@@ -38,75 +40,54 @@ def extracting_keywords_from_text():
                 #     print word,
             print list_of_terms
             count = Counter(list_of_terms)
-            print count.most_common(20)
+            top_twenty_terms = count.most_common(20)
+            print top_twenty_terms
+            # print type(top_twenty_terms)
             print "#" * 40
             print "#" * 40
             print "#" * 40
             print "#" * 40
+            for term in top_twenty_terms:
+                keyword_instance = Keyword(keyword=term[0])
+                if not Keyword.query.filter_by(keyword=term[0]).first():
+                    db.session.add(keyword_instance)
+                else:
+                    print "the word, ", term[0], " already in database"
+                keyword_instance.books.append(book_obj)
 
-        
-
-       
-    
-        # first_words = book_obj.first_words
-        # title = book_obj.title #may be useful for books w/ descrip, fw, quotes
-        # for quote in book_obj.quotes:
-        #   if [quote.quote for quote in abook.quotes] #if quote exist
-        #       quote_obj = quote #the quote object
-        #       quote = quote.quote #the quote itself
-        #                   #pull out keywords from each quote
-        #                   #should i pull out keywords from quotes? useful? biased?
-        # if [event.event for event in abook.events]:
-        #   event = event.event.upper() #uppercase to make event proper noun, if not already
-        #                   #pull out keywords from event
-        #                   #do i want to make the event apart of keywords or just add to the tag cloud?
-        #                   #what to do if books have no descrip/quotes/firstwords?
-        # #should I add each item to a list and then iterate through to extract KWs?
 def tokenize_tag_text(description):
-    # description = re.split(r"[^\w'-]", description)  
+    """Removes some punctuation, tags each word by part-of-speech, and generates keyword and 
+    keyword prhases  based on noun phrases patterns using regexp."""
+
     sentence_re = r'''(?x)
-    ([A-Z])(\.[A-Z])+\.? 
-    | \w+(-\w+)*         
-    | \$?\d+(\.\d+)?%?  
-    | \.\.\.            
-    | [][.,;"?():-_`]  
+    ([A-Z])(\.[A-Z])+\.?  # set flag to allow verbose regexps
+    | \w+(-\w+)*          # words with optional internal hyphens
+    | \$?\d+(\.\d+)?%?    # currency and percentages
+    | \.\.\.              # ellipsis
+    | [][.,;"?():-_`]     # separate tokens
     '''
 
-    # set flag to allow verbose regexps
-    # words with optional internal hyphens
-    # currency and percentages
-    # ellipsis
-    # separate tokens
-
-
-    #Taken from Su Nam Kim paper (Evaluating n-gram based evaluation 
-    #metrics for automatic keyphrase extraction.) 
     grammar = r"""
     NBAR:
-        {<NN.*|JJ>*<NN.*>}  # Nouns and Adjectives, terminated with Nouns
-        {<NNP|NNPS>+<IN>?<NNP|NNPS>+}
-        {<DT|PP\$>?<JJ>*<NN|NNS>}
-        {<NN>+}
+        {<NN.*|JJ>*<NN.*>}             # Nouns and Adjectives, terminated with Nouns
+        {<NNP|NNPS>+<IN>?<NNP|NNPS>+}  # A sequence of proper nouns connected with zero or more prepositions
+        {<DT|PP\$>?<JJ>*<NN|NNS>}      # Determiners (e.g. 'the', 'a') or possessive, followed by one or more adjective 
+        {<NN>+}                        # A sequence of one or more nouns
 
     NP:
         {<NBAR>}
-        {<NBAR><IN><NBAR>}  # Above, connected with in/of/etc...
+        {<NBAR><IN><NBAR>}  
     """
-
-        # Nouns and Adjectives, terminated with Nouns
-        # Above, connected with in/of/etc...
 
     chunker = nltk.RegexpParser(grammar)
     toks = nltk.regexp_tokenize(description, sentence_re)
     postoks = nltk.tag.pos_tag(toks)
-    # import pdb; pdb.set_trace()
-    # print postoks
     tree = chunker.parse(postoks)
     return tree 
 
 def get_terms(tree):
+    """Returns acceptable, lemmatized keywords."""
     for leaf in leaves(tree):
-        # print "leaf, ", leaf
         for word in leaf:
             if word[1] != 'NNP':
                 term = [ normalise(word) for word,tag in leaf if acceptable_word(word) ]
@@ -121,13 +102,12 @@ def leaves(tree):
 
  
 def normalise(word):
-    """Normalises words to lowercase and stems and lemmatizes it."""
+    """Normalises words to lowercase and lemmatizes it."""
 
-    lemmatizer = nltk.WordNetLemmatizer()
+
     stemmer = nltk.stem.porter.PorterStemmer()
 
     word = word.lower()
-    # word = stemmer.stem_word(word)
     word = lemmatizer.lemmatize(word)
     return word
  
@@ -144,7 +124,7 @@ def acceptable_word(word):
 if __name__ == "__main__":
     connect_to_db(app)
     db.create_all()
-    extracting_keywords_from_text()
+    extracting_keywords_from_text(list_of_book_objects)
 
 
 
