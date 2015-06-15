@@ -111,3 +111,5 @@ Navigate to `localhost:5000` to start discoverying new books!
 
 
 ####Next Steps
+
+Check out the [issues log for this project] (https://github.com/Tiffany8/Project_WunderLand/issues) to see what's next!
