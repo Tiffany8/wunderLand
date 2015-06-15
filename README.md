@@ -66,6 +66,48 @@ tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
 ``` 
 
 
-####How to run wunderLand
+####How to run wunderLand on your machine
+
+Clone or fork this repo:
+
+```python
+https://github.com/Tiffany8/Project_WunderLand.git
+```
+
+Create and activate a virtual environment inside your project directory:
+
+```
+virtualenv env
+
+source env/bin/activate
+```
+
+Install the requirements:
+
+```
+pip install -r requirements.txt
+```
+
+Get your own keys for for [LibraryThing API] (http://www.librarything.com/services/keys.php) and [Google Developer API] (https://developers.google.com/api-client-library/python/guide/aaa_apikeys), save them to a file <kbd>secrets.sh</kbd>, and add this file to your <kbd>.gitignore</kbd>.  Your file should look something like this:
+
+```
+export LIBRARYTHING_API_KEY='YOURSECRETLIBRARYTHINGKEYHERE'
+export GOOGLE_API_KEY='YOURSECRETGOOGLEKEYHERE'
+```
+
+Source your secret keys:
+
+```
+source keys.sh
+```
+
+Run the app:
+
+```
+python server.py
+```
+
+Navigate to `localhost:5000` to start discoverying new books!
+
 
 ####Next Steps
