@@ -101,6 +101,7 @@ Source your secret keys:
 source secrets.sh
 ```
 
+
 I used Postgres to store data locally.  You can download Postgres on a Mac [here] (http://postgresapp.com/).  If you are using a different operating system, refer to this [site] (http://www.postgresql.org/download/) for download instructions.
 
 
@@ -110,11 +111,13 @@ Next, you need to install a Postgres python wrapper called Psycopg.  More inform
 pip install psycopg2
 ```
 
+
 After setting up your database, you will now need to seed your database with books!  There are many ways in which you could go about seeding your database with books.  I have provided a list of the top 1000 authors in <kbd>list_of_authors.py</kbd>.  In order to start seeding, you will need to run <kbd>seed.py</kbd>
 
 ```
 python seed.py
 ```
+
 
 Be aware of the max number of API calls per day for Google Books, LibraryThing and the geocoder library (for storing the longitudes and latitudes of locations).
 
@@ -127,6 +130,7 @@ Run the app:
 ```
 python server.py
 ```
+
 
 Navigate to `localhost:5000` to start discoverying new books!
 
