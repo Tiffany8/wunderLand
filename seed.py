@@ -8,8 +8,6 @@ from model import Book, Author, Location, Category, Quote, Event, Character, Awa
 
 from sys import argv
 
-#not quite sure how this works, but it has aleviated my unicode errors!
-#source - random forum: http://mypy.pythonblogs.com/12_mypy/archive/1253_workaround_for_python_bug_ascii_codec_cant_encode_character_uxa0_in_position_111_ordinal_not_in_range128.html
 import sys;
 reload(sys);
 sys.setdefaultencoding("utf8")
@@ -25,7 +23,6 @@ from sqlalchemy import exc
 
 from datetime import datetime
 
-#from Google Books
 import pprint
 import sys
 from apiclient.discovery import build
@@ -35,25 +32,48 @@ from random_words import RandomWords
 from keyword_seeding_using_nltk import *
 
 
-# Note: you must run `source secrets.sh` before running this file
-# to make sure these environmental variables are set.
 
 #Maximum number of results to return. (integer, 0-40)
 MAX_RESULTS = 20
 #Index of the first result to return (starts at 0) (integer, 0+)
 START_INDEX = 0
-## last stopped after seeding at index 220 for 'california subject:"fiction"'
-# stopped after seeding at index 200 for
-#sunday -- started at 160-400 'new york times bestseller books'
-#books - 200
-#subject:fiction -- 240
-#pulitzer prize winning books -120
-RW = RandomWords()
 
-#remember to run source secrets.sh in order to access this environmental variable
-# API provided from OS environment dictionary
+
+# #Note: you must run `source secrets.sh` before running this file
+# #to make sure these environmental variables are set.
 apikey = os.environ['LIBRARYTHING_DEVELOP_KEY']
 google_api_key = os.environ['GOOGLE_API_KEY']
+
+def seed_database_from_list_of_authors():
+    """This file parses through a text file containing a list of the top 1000 authors (according to LibraryThing), and 
+    creates an 'in author' query that author's name in Google Books and return the top twenty relevant works by the author.  
+    The query is run through the book_database_seeding function to seed the database and also through the extracting_keywords_from_text
+    function (from the keyword_seeding_using_nltk.py file) in order to seed the database with keywords/keyword phrases 
+    associated with the books."""
+
+    max_results = MAX_RESULTS
+    total_query = 0
+    queries = []
+    file = open("list_of_authors.txt").read()
+    authors_list = file.split("\n")
+    while total_query < 200:
+        for author in authors_list:
+            query = ""
+            name = author[:-9].split()
+            for a_name in name:
+                query = query + "inauthor:" + a_name + " "
+            print query
+            list_of_book_objects = book_database_seeding(google_api_key, apikey, query)
+            extracting_keywords_from_text(list_of_book_objects)
+            db.session.commit()
+            total_query = total_query + max_results
+            print total_query
+            print "#" * 40
+            print "#" * 40
+            print "#" * 40
+            queries.append(query)
+        print queries
+
 
 def book_database_seeding(google_api_key, apikey, query):
     """Main fuction that runs the helper functions below to
@@ -103,41 +123,44 @@ def google_book_search(query):
 
 
     # # Accessing the response like a dict object with an 'items' key returns a list
-    # # of item objects (books). The item object is a dict object with a 'volumeInfo'
+    # # of JSON objects for each book. The item object is a dict object with a 'volumeInfo'
     # # key. The volumeInfo object is a dict with keys 'title' and 'authors'.
 def create_book_author_instance(response):
+    """This function takes a list of JSON objects for each book from the Google Book query and retrieves
+    information from the JSON (isbn, title, author(s), cateogry, description, thumbnail link, published date, 
+    preview link, page count, ratings count, average ratings), and creates an instance of each book to store in 
+    the database.  Categories and author information are also appended to separate association tables."""
     isbn_list = []
     list_of_book_objects = []
-    #this "for loop" iterates through the response dictionary, which consists of books and a
-    #dictionary of information about the books (volumeInfo) as the key and value pair
+    # #this "for loop" iterates through the response dictionary, which consists of books and a
+    # #dictionary of information about the books (volumeInfo) as the key and value pair
     for book_dict in response.get('items', []):
-        #I only want to store the book if it has an ISBN associated with it (could be an actual value
-        # or a None)
+        # #I only want to store the book if it has an ISBN associated with it (could be an actual value
+        # #or a None)
         if book_dict.get('volumeInfo', {}).get('industryIdentifiers'):
             isbn_type = book_dict.get('volumeInfo', {}).get('industryIdentifiers')[0].get('type')
             isbn = book_dict.get('volumeInfo', {}).get("industryIdentifiers")[0].get('identifier')
             print isbn
 
-            #Since the value could be "None", this "if" checks for an actual isbn value
-
+            # #Since the value could be "None", this "if" checks for an actual isbn value
             if isbn:
                 title = book_dict.get('volumeInfo', {}).get('title')
                 print "The title: ", title
                 subtitle = book_dict.get('volumeInfo', {}).get('subtitle')
-                # print "subtitle: ", subtitle
+
                 bookauthors = book_dict.get('volumeInfo', {}).get('authors')
                 print "Authors: ", bookauthors
                 if book_dict.get('volumeInfo').get('categories'):
                     categories = book_dict.get('volumeInfo').get('categories')
                 else:
                     categories = None
-                # print "Categories: ", categories
+
                 mainCategory = book_dict.get('volumeInfo').get('mainCategory')
-                # print "Main Category", mainCategory
+
                 description = book_dict.get('volumeInfo', {}).get('description')
-                # print "Description: ", description
+
                 thumbnail = book_dict.get('volumeInfo', {}).get('imageLinks', {}).get('thumbnail')
-                # print "Thumbnail link: ", thumbnail
+
 
                 publishedDate_unformated = book_dict.get('volumeInfo', {}).get('publishedDate')
                 if publishedDate_unformated:
@@ -151,7 +174,7 @@ def create_book_author_instance(response):
                     except:
     
                         print "Publication date formating errors for: ", title
-                    # print "Publication Date: ", publishedDate
+
                 else:
                     published_Date = None
 
@@ -186,14 +209,14 @@ def create_book_author_instance(response):
                         print "instances of author created"
                     if categories:
                         for item in categories:
-                            #some categories are longer than 40 characeters and causing breaks in seeding loop
+                            #some categories are longer than 40 characters and causing breaks in seeding loop
                             if len(item) > 40:
                                 item = item[:40]
                             category_instance = Category(category = item)
                             if not Category.query.filter_by(category = item).all():
                                 db.session.add(category_instance)
                             category_instance.books.append(book)
-                    # db.session.commit()
+
                 else:
                     print "This book ", book.title, "isbn: ", book.isbn, " already exist in the database!"
     print isbn_list
@@ -204,30 +227,31 @@ def create_book_author_instance(response):
 
 
 def get_LT_book_info(apikey, isbn_list):
-    """This function takes a list of book instances, retrieves the isbn of a work (book), and returns the XML of the common knowledge from librarything.
+    """This function takes a list of book instances, retrieves the isbn of a work (book), and returns the XML 
+    of the common knowledge from librarything.
     """
     list_tuples_commknow_isbn = []
 
     for work in isbn_list:
         work_info = {"method" : "librarything.ck.getwork", "isbn" : work, "apikey" : apikey}
-        # creates a class 'requests.models.Response' - prints common work
+
         work_common_knowledge = requests.get('http://librarything.com/services/rest/1.1/', params=work_info)
 
         if work_common_knowledge:
-            # turns common knowledge into a unicode
+         
             work_common_knowledge_unicode = work_common_knowledge.text
 
             list_tuples_commknow_isbn.append((work_common_knowledge_unicode, work))
-            # print list_tuples_commknow_isbn
-            # import pdb; pdb.set_trace()
+
     return list_tuples_commknow_isbn
 
 
 def create_location_instance(list_tuples_commknow_isbn):
-    #TO DO -- still get parsing errors -- try search "new york times bestselling 2014"
-    # file_to_parse = open(file_name).read()
-    # tree = ET.parse(file_name)
-    print "I'm now in here"
+    """This function takes a list of tuples containing the common knowledge for each book and its isbn.  Each common knowledge
+    is parsed for the 'places mentioned'.  An instance of a location is created for each place mentioned and stored in the database
+    in the locations table and the book-location association table. """
+    
+
     for item in list_tuples_commknow_isbn:
         try:
             commonknowledge = item[0]
@@ -236,21 +260,15 @@ def create_location_instance(list_tuples_commknow_isbn):
             print "book:", book
             print isbn
             root = ET.fromstring(commonknowledge)
-            # root = ET.fromstring(commonknowledge_enc)
+      
             ns={'lt':'http://www.librarything.com/'}
-            # import pdb; pdb.set_trace()
-            # import pdb; pdb.set_trace()
-            #in the ET library, findall() returns a list of objects; iterating over them and extracting the text
+           
             for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
                 place = child.text
                 # print place
                 place_list = place.split(', ')
                 print place_list
-                # import pdb; pdb.set_trace()
-                #only pulling out places that have a city and state listed
-                #TO DO -- how can I make this code more efficient?
-                #if I put the db.session.add() outside of the if loop, then there will be
-                #instances where location does not exist and I will get an error
+                
                 if "D.C." in place_list:
                     location = Location(city_county = place_list[:-1],
                                         state = None,
@@ -298,11 +316,7 @@ def create_location_instance(list_tuples_commknow_isbn):
                                     character = child.text
                                     character_instance = Character(character=character,
                                                                     isbn=isbn)
-                                    # if not Character.query.filter_by(character=character).all():
                                     db.session.add(character_instance)
-                                    # else:
-                                        # print "character name already in database!"
-                                    # character_instance.books.append(book)
 
                             if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='quotations']", ns) is not None:
                                 for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='quotations']/lt:versionList/lt:version/lt:factList/*",ns):
@@ -311,7 +325,6 @@ def create_location_instance(list_tuples_commknow_isbn):
                                     quote_instance = Quote(quote=quotation,
                                                             isbn=isbn)
                                     db.session.add(quote_instance)
-                                    # quote_instance.books.append(book)
 
                             if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='awards']", ns) is not None:
                                 for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='awards']/lt:versionList/lt:version/lt:factList/*",ns):
@@ -320,7 +333,6 @@ def create_location_instance(list_tuples_commknow_isbn):
                                     award_instance = Award(award=award,
                                                             isbn=isbn)
                                     db.session.add(award_instance)
-                                    # quote_instance.books.append(book)
 
                             if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns) is not None:
                                 first_words = root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns).find("lt:fieldList", ns).find("lt:field[@name='firstwords']", ns).find("lt:versionList", ns).find("lt:version", ns).find("lt:factList",ns).find("lt:fact", ns).text.lstrip("<![CDATA[").rstrip("]]>")
@@ -334,12 +346,9 @@ def get_longitude_latitude_of_location():
     If the location does not exist or is fictional, then the lat/longs are set to
     float('Nan'). """
 
-    #### To NOTE:::: geocoder.osm (Open Street Maps) returns a different library 
-    #### than the geocoder.google -- take note of how the lat/longs are returned and
     #### the syntax needed to retrieve the info (https://geocoder.readthedocs.org/en/latest/)
     location_obj_list = Location.query.filter(Location.latitude.is_(None)).all()
-    # print location_obj_list
-    # dict_city_state = {l.state: l.city_county for l in usa_cities_obj_list}
+  
     location_dict= {}
 
     for place in location_obj_list:
@@ -357,12 +366,6 @@ def get_longitude_latitude_of_location():
         location_obj = geocoder.google(location)
         print location, location_obj
 
-        # except:
-            # place.latitude = float('NaN')
-            # place.longitude = float('NaN')
-            # print "This location, ", location, "could not be found."
-
-        # else:
         latlong = location_obj.geometry.get("coordinates", (float('NaN'), float('NaN')))
         place.latitude  = latlong[1]
         place.longitude = latlong[0]
@@ -371,155 +374,11 @@ def get_longitude_latitude_of_location():
 
 
 
-    #### For geocoder.google::
-    # for place in location_obj_list:
-        
-    #     if not place.city_county:
-    #         location = place.state + ", " + place.country
-    #         print location
-    #     else:
-    #         location = place.city_county + ", " + place.state
-    #         print location
-            
-    #     try:
-    #         location_obj = geocoder.google(location)
-
-    #     except:
-    #         place.latitude = float('NaN')
-    #         place.longitude = float('NaN')
-    #         print "This location, ", location, "could not be found."
-
-    #     else:
-    #         latlong = location_obj.latlng
-    #         if latlong:
-    #             place.latitude  = latlong.[0]
-    #             place.longitude = latlong.[1]
-    #             db.session.commit()
-
-    #### For geocoder.osm:::
-       # for place in location_obj_list:
-       #  # try:
-       #  if not place.city_county:
-       #      location = place.state + ", " + place.country
-       #      print location
-       #  else:
-       #      location = place.city_county + ", " + place.state
-       #      print location
-       #  location_obj = geocoder.osm(location)
-       #  print location, location_obj
-
-       #  # except:
-       #      # place.latitude = float('NaN')
-       #      # place.longitude = float('NaN')
-       #      # print "This location, ", location, "could not be found."
-
-       #  # else:
-       #  latlong = location_obj.geometry.get("coordinates", (float('NaN'), float('NaN')))
-       #  place.latitude  = latlong[1]
-       #  place.longitude = latlong[0]
-
-
-    # usa_cities_obj_list = Location.query.filter_by(country='USA').filter(Location.city_county.isnot(None)).all()
-    # print usa_cities_obj_list
-    # # dict_city_state = {l.state: l.city_county for l in usa_cities_obj_list}
-    # dict_city_state = {}
-
-    # for place in usa_cities_obj_list:
-    #     location = place.city_county + ", " + place.state
-    #     # print location
-    #     location_obj = geocoder.google(location)
-    #     latlong = location_obj.latlng
-    #     # print location,latlong
-    #     # print type(latlong)
-    #     if latlong:
-    #         place.latitude  = latlong[0]
-    #         place.longitude = latlong[1]
-    #         db.session.commit()
-
-
-
-        # location = place.city_county + ", " + place.state
-        # # print location
-        # location_obj = geocoder.google(location)
-        # latlong = location_obj.latlng
-        # # print location,latlong
-        # # print type(latlong)
-        # if latlong:
-        #     place.latitude  = latlong[0]
-        #     place.longitude = latlong[1]
-        #     db.session.commit()
-
-    # for location_obj in usa_cities_obj_list:
-    #     dict_city_state[location_obj.state] = location_obj.city_county
-    # # print dict_city_state
-    # for state in dict_city_state:
-    #     location = dict_city_state[state] +", " + state
-    #     # print location
-    #     # print "location type", type(location)
-    #     # print location
-    #     location_obj = geocoder.google(location)
-    #     latlong = location_obj.latlng
-    #     print location,latlong
-    #     print type(latlong)
-    #     location_obj.longitude  = latlong[0]
-    #     location_obj.latitude = latlong[1]
-        # db.session.commit()
-        # import pdb; pdb.set_trace()
-
-
-def command_line_query_loop():
-    max_results = MAX_RESULTS
-    total_query = 0
-    queries = []
-    file = open("listofbooks.txt").read()
-    authors_list = file.split("\n")
-    while total_query < 200:
-        for author in authors_list:
-            query = ""
-            name = author[:-9].split()
-            for a_name in name:
-                query = query + "inauthor:" + a_name + " "
-            print query
-            list_of_book_objects = book_database_seeding(google_api_key, apikey, query)
-            extracting_keywords_from_text(list_of_book_objects)
-            db.session.commit()
-            total_query = total_query + max_results
-            print total_query
-            print "#" * 40
-            print "#" * 40
-            print "#" * 40
-            queries.append(query)
-        print queries
-
-
-## Query I used to seed database by searching for random words::
-# while total_query < 300:
-#         query = RW.random_word()
-#         book_database_seeding(google_api_key, apikey, query)
-#         total_query = total_query + max_results
-#         queries.append(query)
-#     print queries
-
-# def store_text_common_knowledge(work_common_knowledge_utf8, isbn):
-    # """This function runs through the get_LT_book_info(),
-    # takes the common knowledge of a work and saves it to a text file."""
-
-    # file_name = str(isbn) + ".xml"
-    # print file_name
-    # # import pdb; pdb.set_trace()
-    # file = open(file_name, "w")
-    # file.write(work_common_knowledge_utf8)
-    # file.close()
-
-    # return file_name
 
 
 if __name__ == "__main__":
     connect_to_db(app)
-
     db.create_all()
-    # get_longitude_latitude_of_location()
-
     script = argv
-    command_line_query_loop()
-    # book_database_seeding(google_api_key, apikey, query)
+    seed_database_from_list_of_authors()
+
