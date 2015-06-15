@@ -55,7 +55,7 @@ grammar = r"""
 
 ####Book Clusters
 
-If a user enjoys one of the discovered books, they can discover similar books that have been associated with the same queired location.  Using kmeans algorithm, clusters of books were created.  The kmeans algorithm takes the number of books associated with a location and groups them into 8 clusters, in which each book belongs to a cluster with the closest mean.  For wunderLand, books were clustered using a bag-of-words approach to create vector representations of each book.  Each word was weighted using term frequency-inverse document frequency (tf-idf).  tf-idf is a numerical representation of a terms importance to a document or book in a collection.  Term frequency (tf) is a ratio of the frequency of the word in a document to the total number of words in the document.  The inverse document frequency (idf) is the log of the ratio of the number of documents or books in the collectino to the numbe rof documents with the given term.  Multiplying tf and idf yields the tf-idf.  This statistical method was employed using the Scikit Learn python library to create a tfidf vectorizing object to pass through a list of documents.  For wunderLand, book descriptions were used.  Below is a snippet of code from <kbd> book_cosine_similarity.py</kbd> demonstrating the creation of the tf-idf vectorizer with a set of parameters, and passing through a list of the descriptions for a given collection.
+If a user enjoys one of the discovered books, they can discover similar books that have been associated with the same queired location.  Using kmeans algorithm, clusters of books were created.  The kmeans algorithm takes the number of books associated with a location and groups them into 8 clusters, in which each book belongs to a cluster with the closest mean.  For wunderLand, books were clustered using a bag-of-words approach to create vector representations of each book based on the words in the book description.  Each word was weighted using term frequency-inverse document frequency (tf-idf).  tf-idf is a numerical representation of a terms importance to a document or book in a collection.  Term frequency (tf) is a ratio of the frequency of the word in a document to the total number of words in the document.  The inverse document frequency (idf) is the log of the ratio of the number of documents or books in the collectino to the numbe rof documents with the given term.  Multiplying tf and idf yields the tf-idf.  This statistical method was employed using the Scikit Learn python library to create a tfidf vectorizing object to pass through a list of documents.  For wunderLand, book descriptions were used.  Below is a snippet of code from <kbd> book_cosine_similarity.py</kbd> demonstrating the creation of the tf-idf vectorizer with a set of parameters, and passing through a list of the descriptions for a given collection.
 
 ```python
 tfidf_vectorizer = TfidfVectorizer(max_df=0.5, max_features=200000,
@@ -64,6 +64,7 @@ tfidf_vectorizer = TfidfVectorizer(max_df=0.5, max_features=200000,
 
 tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
 ``` 
+
 
 ####How to run wunderLand
 
