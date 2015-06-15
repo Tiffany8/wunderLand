@@ -98,7 +98,7 @@ export GOOGLE_API_KEY='YOURSECRETGOOGLEKEYHERE'
 Source your secret keys:
 
 ```
-source keys.sh
+source secrets.sh
 ```
 
 Run the app:
