@@ -32,6 +32,27 @@ Clicking "GET BOOKS" queries the database for books associated with the input lo
 
 A user can deepen their book exploration experience by clicking on keywords, which queries the databse and returns other books that have been associated with that keyword.  Keywords were generated from each book's description using the Natural Language Toolkit (NLTK).  Each description was broken into 'tokens' or individual words, which were then tagged by part-of-speech (pos).  Regex was used to create noun phrase patterns based on pos in order to chunk keyword phrases.  The following code snippet from <kbd>keywords_from_books_using_nltk.py</kbd> illustrates the noun phrase patterns that were used to identify keywords and keyword phrases.
 
+```python
+sentence_re = r'''(?x)
+    ([A-Z])(\.[A-Z])+\.?  # set flag to allow verbose regexps
+    | \w+(-\w+)*          # words with optional internal hyphens
+    | \$?\d+(\.\d+)?%?    # currency and percentages
+    | \.\.\.              # ellipsis
+    | [][.,;"?():-_`]     # separate tokens
+    '''
+
+    grammar = r"""
+    NBAR:
+        {<NN.*|JJ>*<NN.*>}             # Nouns and Adjectives, terminated with Nouns
+        {<NNP|NNPS>+<IN>?<NNP|NNPS>+}  # A sequence of proper nouns connected with zero or more prepositions
+        {<DT|PP\$>?<JJ>*<NN|NNS>}      # Determiners (e.g. 'the', 'a') or possessive, followed by one or more adjective 
+        {<NN>+}                        # A sequence of one or more nouns
+    NP:
+        {<NBAR>}
+        {<NBAR><IN><NBAR>}  
+    """
+```
+
 ####Book Clusters
 
 ####How to run wunderLand
