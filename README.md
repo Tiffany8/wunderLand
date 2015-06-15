@@ -41,7 +41,7 @@ sentence_re = r'''(?x)
     | [][.,;"?():-_`]     # separate tokens
     '''
 
-    grammar = r"""
+grammar = r"""
     NBAR:
         {<NN.*|JJ>*<NN.*>}             # Nouns and Adjectives, terminated with Nouns
         {<NNP|NNPS>+<IN>?<NNP|NNPS>+}  # A sequence of proper nouns connected with zero or more prepositions
@@ -54,6 +54,25 @@ sentence_re = r'''(?x)
 ```
 
 ####Book Clusters
+
+If a user enjoys one of the discovered books, they can discover similar books that have been associated with the same queired location.  Using kmeans algorithm, clusters of books were created.  The kmeans algorithm takes the number of books associated with a location and groups them into 8 clusters, in which each book belongs to a cluster with the closest mean.  For wunderLand, books were clustered using a bag-of-words approach to create vector representations of each book.  Each word was weighted using term frequency-inverse document frequency (tf-idf).  tf-idf is a numerical representation of a terms importance to a document or book in a collection.  Term frequency (tf) is a ratio of the frequency of the word in a document to the total number of words in the document.  The inverse document frequency (idf) is the log of the ratio of the number of documents or books in the collectino to the numbe rof documents with the given term.  Multiplying tf and idf yields the tf-idf.  This statistical method was employed using the Scikit Learn python library to create a tfidf vectorizing object to pass through a list of documents.  For wunderLand, book descriptions were used.  Below is a snippet of code from <kbd> book_cosine_similarity.py</kbd> demonstrating the creation of the tf-idf vectorizer with a set of parameters, and passing through a list of the descriptions for a given collection.
+
+```python
+# # max_df -- max frequency within document a given feature can have to be in matrix;
+# # if > 80% in a document, carries less meaning
+# # min_idf --if an integer, then the term has to be in at least 'X' integer documents to be 
+# # considerd. 0.2 means it needs to be in at least 20% of documents
+# # ngram range -- means to look at unigrams, bigrams, and trigrams
+# # tfidf vectorizer 
+
+tfidf_vectorizer = TfidfVectorizer(max_df=0.5, max_features=200000,
+                             min_df=0.2, stop_words='english',
+                             use_idf=True, tokenizer=get_tokens, ngram_range=(1,3))
+
+# # running the collection of documents/descriptions through the vectorizer to generate the matrix
+
+tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
+``` 
 
 ####How to run wunderLand
 
