@@ -66,8 +66,6 @@ tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
 ``` 
 
 
-Each book is then re
-
 ####How to run wunderLand on your machine
 
 Clone or fork this repo:
