@@ -13,7 +13,6 @@ div#main-container {
   background-size:100%;
   font-family: 'Quattrocento', serif;
   min-height:750px;
-  /*background-position: initial;*/
 }
 
 #scrollable-tab-contents {
@@ -28,21 +27,8 @@ div#main-container {
   margin-top:-5;
   width:;
 }
-/*#myTab {
-  overflow-x:auto;
-  top:43.455px;
-  left:0;
-  right:0;
-  bottom:0;
-  position:absolute;
-}*/
 
-/*.search-div #wunderland_full {
-  width:40%;
-  margin:200px auto;
-  text-align:center;
-}
-*/
+
 .search-div .user_book_query {
   width:40%;
   margin:200px auto;
@@ -115,21 +101,10 @@ svg .mpld3-figure {
 margin-left: 0px;
 }
 
-/*.fade {
-opacity: 0;
--webkit-transition: opacity 2.25s linear;
-  -moz-transition: opacity 2.25s linear;
-   -ms-transition: opacity 2.25s linear;
-    -o-transition: opacity 2.25s linear;
-       transition: opacity 2.25s linear;
-}*/
 
 #myTabContent {
   overflow: scroll;
   height: 500px;
- /* flex:1 1 auto;*/
-  /*height:600px;*/
-
 }
 
 #loaderthingy {
@@ -182,21 +157,14 @@ opacity: 0;
   font-weight:bolder;
 }
 
-/*.nav-tabs>li:hover {
-  background-color: #B2DFDB;
-  color:#666666;
-}*/
+
 
 #map-canvas {
   width:100%;
   height:450px;
 }
 
-/*#local_venues {
-        height: 100%;
-        margin: 0px;
-        padding: 0px
-      }*/
+
 
 #myTab {
   flex: 0 0 auto;
@@ -208,21 +176,7 @@ opacity: 0;
   font-weight: bold;
 }
 
-/*#book-search-submit-button {
 
-  cursor: crosshair;
-
-}*/
-
-
-/*#4C9696;*/
-
-
-/*.form-control.active {
-  border-color: #B2DFDB
-  box-shadow: inset 0 -1px 0 #B2DFDB;
-  background-color: transparent;
-}*/
 
 
 textarea:focus, textarea.form-control:focus, input.form-control:focus, input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, input[type=number]:focus, [type=text].form-control:focus, [type=password].form-control:focus, [type=email].form-control:focus, [type=tel].form-control:focus, [contenteditable].form-control:focus {
@@ -230,26 +184,7 @@ textarea:focus, textarea.form-control:focus, input.form-control:focus, input[typ
   box-shadow: inset 0 -2px 0 #4C9696;
 }
 
-/*.footer {
-  position:fixed;
-  left:0px;
-  bottom:0px;
-  height:30px;
-  width:0%;
-  background:url("./img/photodune-4524905-book-l.jpg") no-repeat center center fixed;
-  margin:200px auto;
-  text-align:center;
-}*/
 
-/*#search-input {
-  background: transparent;
-  -webkit-box-shadow: #B2DFDB;
-  outline: #B2DFDB auto 0px;
-}*/
-
-/*#search-input-autofill {
-  background-color:transparent !important;
-}*/
 
 input:-webkit-autofill {
   background-color:transparent !important;
@@ -312,6 +247,7 @@ input:-webkit-autofill {
 .book-description {
   font-family: 'Quattrocento', serif;
   font-weight: bold;
+  color:#666666;
 
 }
 
@@ -355,3 +291,9 @@ text[@x=-140] {
 .form-control:-moz-placeholder { color: #666666; }
 .form-control::-moz-placeholder { color: #666666; }
 .form-control:-ms-input-placeholder { color: #666666; }
+
+.gm-style-iw {
+  color: black;
+  text-align: center;
+  font-weight: bold;
+}
