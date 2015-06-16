@@ -28,8 +28,8 @@ def get_local_venues(latitude, longitude):
 	arguments = {"method" : "librarything.local.getvenuesnear", "lat" : latitude, 
 	"lon": longitude, "distance":3, "venueType":1, "apikey" : apikey}
 	local_venues = requests.get('http://librarything.com/services/rest/1.1/', params=arguments).text
-	pp = pprint.PrettyPrinter(indent=4)
-	pp.pprint(local_venues)
+	# pp = pprint.PrettyPrinter(indent=4)
+	# pp.pprint(local_venues)
 	return local_venues    
 
 def parse_local_venues(local_venues):
@@ -39,17 +39,16 @@ def parse_local_venues(local_venues):
 	root = ET.fromstring(local_venues)
 	ns={'lt':'http://www.librarything.com/'}
 	places = root.findall('./lt:ltml/lt:itemList/lt:item', ns)
+	zindex = 0
 	for item in places:
-		local_venues_dict = {}
+		local_venue = []
 		name = item.find('lt:name', ns).text
 		website = item.find('lt:officialSite',ns).text
 		latitude = item.find('lt:location/lt:lat',ns).text
 		longitude = item.find('lt:location/lt:lng',ns).text
-		local_venues_dict[name] = {website: website,
-								latitude: latitude,
-								longitude: longitude
-								}
-		local_venues_list.append(local_venues_dict)
+		local_venue = [name, latitude, longitude, zindex, website]
+		local_venues_list.append(local_venue)
+		zindex = zindex + 1
 		print "place, ", name
 	return local_venues_list
 
