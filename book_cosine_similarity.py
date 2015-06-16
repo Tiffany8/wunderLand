@@ -271,6 +271,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
 
     #uncomment the below to export to html
     kmeans_cluster_graph_html = mpld3.fig_to_html(fig)
+    print "KMEANS CLUSTER GRAPH HTML", kmeans_cluster_graph_html
     
     return kmeans_cluster_graph_html
 
