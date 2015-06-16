@@ -118,7 +118,7 @@ $(document).on('click', '.keywordbutton', function() {
     } // for loop closing
   }); // get request closer
 });  // bookthumbnail click closer
-// }    // outermost bracket
+
 
 
 // Part 3: Get Kmeans info from server to display
@@ -178,10 +178,10 @@ var styles = [{"stylers":[{"saturation":-100}]},{"featureType":"water","elementT
 function initialize(coords, bookStores) {
   console.log("in initialize")
   console.log(coords)
-  var mapProp = {
+  var mapOptions = {
       center:coords,
       zoom: 15,
-      draggable: false,
+      draggable: true,
       scrollwheel: false,
       mapTypeControl:false,
       navigationControlOptions: {
@@ -189,6 +189,9 @@ function initialize(coords, bookStores) {
       },
       mapTypeId:google.maps.MapTypeId.ROADMAP
   };
+
+  var map = new google.maps.Map(document.getElementById("map-canvas"),mapOptions);
+  map.setOptions({styles: styles});
 
   // Add markers to the map:
   // Marker sizes are expressed as a Size of X,Y
@@ -221,9 +224,11 @@ function initialize(coords, bookStores) {
       type: 'poly'
   };
 
-  var map = new google.maps.Map(document.getElementById("map-canvas"),mapProp);
-  map.setOptions({styles: styles});
 
+  // Creating an InfoWindow object
+  var infowindow = new google.maps.InfoWindow({
+      maxWidth: 160
+    });
   for (var i = 0; i < bookStores.length; i++) {
     var bookstore = bookStores[i];
     var myLatLng = new google.maps.LatLng(bookstore[1], bookstore[2]);
@@ -234,24 +239,18 @@ function initialize(coords, bookStores) {
         shape: shape,
         title: bookstore[0],
         website: bookstore[4],
-        zIndex: bookstore[3]
+        zIndex: bookstore[3],
+        visible: true
     }); //end of marker creation
-  } //end of bookSTore for loop
 
-  // Creating an InfoWindow object
-  infowindow = new google.maps.InfoWindow({
-    content: "holding..."
-  });
-
-  for (var i = 0; i < markers.length; i++) {
-
-    var marker = markers[i];
+    marker.setMap(map)
+    //adding a click event to each marker
     google.maps.event.addListener(marker, 'click', function () {
-      // where I have added .html to the marker object.
-      infowindow.setContent(this.html);
+
+      infowindow.setContent(this.title);
       infowindow.open(map, this);
     }); //end of addlistener for marker
-  } //end of for loop for markers.length  
+  } //end of bookSTore for loop
 }; //end of the initialize function
 
 
@@ -301,20 +300,4 @@ $(document).ready(function () {
       clearTimeout(timer);
   });
 
-  $('#local_venues').ajaxStart(function() {
-    timer = setTimeout(function() {
-      $('#loaderthingy').show();
-    }, 1000);
-  });
-
-  $('#local_venues').ajaxComplete(function () {
-      $("#loaderthingy").hide();
-      clearTimeout(timer);
-  });
-
-  $('.tester').on('click', function() {
-  console.log("what'sup");
-  });
 }) // END
-
-
