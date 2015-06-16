@@ -1,4 +1,4 @@
-#![alt text](https://github.com/Tiffany8/Project_WunderLand/blob/master/static/img/wunderland_logo.png "Logo")underLand
+#![alt text](https://github.com/Tiffany8/Project_WunderLand/blob/master/static/img/wunderLand_fulltext.png "Logo")
 wunderLand is a book discovery application that uses location as a means through which one can discover new books.
 wunderLand employs natural language processing in order to enhance book discovery through the generation of keywords and keyword phrases in order to describe books.  NLP and machine learning are used in order to generate clusters of 'like' books based on book descriptions in order to aid users in an additional layer of book discovery.
 
@@ -66,6 +66,8 @@ tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
 ``` 
 
 
+Each book is then re
+
 ####How to run wunderLand on your machine
 
 Clone or fork this repo:
@@ -101,7 +103,6 @@ Source your secret keys:
 source secrets.sh
 ```
 
-
 I used Postgres to store data locally.  You can download Postgres on a Mac [here] (http://postgresapp.com/).  If you are using a different operating system, refer to this [site] (http://www.postgresql.org/download/) for download instructions.
 
 
@@ -130,7 +131,6 @@ Run the app:
 ```
 python server.py
 ```
-
 
 Navigate to `localhost:5000` to start discoverying new books!
 
