@@ -54,7 +54,7 @@ grammar = r"""
         {<NBAR><IN><NBAR>}  
     """
 ```
-<p font-size='small'>[_*regular expression breakdown_](https://www.debuggex.com/r/tpvJM5SwB7tQlsPB)</p>
+[_*Regular expression breakdown_](https://www.debuggex.com/r/tpvJM5SwB7tQlsPB)
 
 ###Book Clusters
 
