@@ -29,7 +29,7 @@ Clicking "GET BOOKS" queries the database for books associated with the input lo
 
 ####Additional Features
 
-###Keyword Exploration
+#####Keyword Exploration
 
 A user can deepen their book exploration experience by clicking on keywords, which queries the databse and returns other books that have been associated with that keyword.  Keywords were generated from each book's description using the Natural Language Toolkit (NLTK).  Each description was broken into 'tokens' or individual words, which were then tagged by part-of-speech (pos).  Regex was used to create noun phrase patterns based on pos in order to chunk keyword phrases.  The following code snippet from <kbd>keywords_from_books_using_nltk.py</kbd> illustrates the noun phrase patterns that were used to identify keywords and keyword phrases.
 
@@ -55,7 +55,7 @@ grammar = r"""
     """
 ```
 
-###Book Clusters
+#####Book Clusters
 
 If a user enjoys one of the discovered books, they can discover similar books that have been associated with the same queried location.  Using k-means algorithm, clusters of books were created.  The kmeans algorithm takes the number of books associated with a location and groups them into 8 clusters, in which each book belongs to a cluster with the closest mean.  For wunderLand, books were clustered using a bag-of-words approach to create vector representations of each book based on the words in the book description.  Each word was weighted using term frequency-inverse document frequency (tf-idf).  tf-idf is a numerical representation of a terms importance to a document or book in a collection.  Term frequency (tf) is a ratio of the frequency of the word in a document to the total number of words in the document.  The inverse document frequency (idf) is the log of the ratio of the number of documents or books in the collection to the number of documents with the given term.  Multiplying tf and idf yields the tf-idf.  Using scikit, the tf-idf of each term in each book's description is used to create a vector representing each book.  Below is a snippet of code from <kbd> book_cosine_similarity.py</kbd> demonstrating the creation of the tf-idf vectorizer with a set of parameters, and passing through a list of the descriptions for a given collection.
 
@@ -67,7 +67,7 @@ tfidf_vectorizer = TfidfVectorizer(max_df=0.5, max_features=200000,
 tfidf_matrix = tfidf_vectorizer.fit_transform(description_tokens)
 ```
 
-###Local wunders
+#####Local wunders
 
 One users have identified books of interest, users can click the local wunders tab to find their local bookstores to visit to search for books.  Google Maps API and Geolocation API are used to generate the local map.  The LibraryThing API is used to source the map.
 
