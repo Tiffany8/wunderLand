@@ -41,7 +41,7 @@ sentence_re = r'''(?x)
     | \.\.\.              # ellipsis
     | [][.,;"?():-_`]     # separate tokens
     '''
-#[regular expression breakdown](https://www.debuggex.com/r/tpvJM5SwB7tQlsPB)
+
 
 grammar = r"""
     NBAR:
@@ -54,6 +54,7 @@ grammar = r"""
         {<NBAR><IN><NBAR>}  
     """
 ```
+[regular expression breakdown](https://www.debuggex.com/r/tpvJM5SwB7tQlsPB)
 
 #####Book Clusters
 
