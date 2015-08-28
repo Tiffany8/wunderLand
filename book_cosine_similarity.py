@@ -125,7 +125,7 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
     ######################
     from sklearn.metrics.pairwise import cosine_similarity
     # # dist is defined as 1 - the cosine similarity of each document. Cosine similarity is measured against 
-    # #the tf-idf matrix and can be used to generate a measure of similarity between each document and the 
+    # #the tf-idf matrix can be used to generate a measure of similarity between each document and the 
     # #other documents in the corpus (each synopsis among the synopses). Subtracting it from 1 provides 
     # #cosine distance which I will use for plotting on a euclidean (2-dimensional) plane.
     dist = 1 - cosine_similarity(tfidf_matrix)
@@ -265,15 +265,14 @@ def kmeans_cluster(terms, description_tokens, tfidf_matrix, titles, bookobj_toke
         ax.axes.get_yaxis().set_visible(False)
 
         
-    ax.legend(numpoints=1) #show legend with only one dot
-
+    ax.legend(numpoints=1, title='') #show legend with only one dot
+ 
     mpld3.display() #show the plot
 
     #uncomment the below to export to html
-    kmeans_cluster_graph_html = mpld3.fig_to_html(fig)
-    print "KMEANS CLUSTER GRAPH HTML", kmeans_cluster_graph_html
-    
-    return kmeans_cluster_graph_html
+    graph_html = mpld3.fig_to_html(fig)
+    print "KMEANS CLUSTER GRAPH HTML", graph_html
+    return graph_html
 
 #define custom toolbar location
 class TopToolbar(mpld3.plugins.PluginBase):
