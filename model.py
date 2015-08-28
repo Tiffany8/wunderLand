@@ -1,11 +1,5 @@
 import pprint
-
 from flask_sqlalchemy import SQLAlchemy
-# from SQLAlchemy import Numberic
-# This is the connection to the SQLite database; we're getting this through
-# the Flask-SQLAlchemy helper library. On this, we can find the `session`
-# object, where we do most of our interactions (like committing, etc.)
-from datetime import datetime
 db = SQLAlchemy()
 import geocoder
 from math import radians, sin, cos, sqrt, asin
@@ -17,12 +11,12 @@ sys.setdefaultencoding("utf8")
 # Part 1: Compose ORM
 
 
-#these are association tables created for many-to-many tables (FlaskSQLAlchemy)
-#books is the "lazy" table
+# these are association tables created for many-to-many tables (FlaskSQLAlchemy)
+# books is the "lazy" table
 authors_books = db.Table('authors_books',
     db.Column('author_id', db.Integer, db.ForeignKey('authors.author_id')),
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
-#TO DO -- change the location id to si
+
 locations_books = db.Table('locations_books',
     db.Column('location_id', db.Integer, db.ForeignKey('locations.location_id')),
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
@@ -39,13 +33,6 @@ books_keywords = db.Table('books_keywords',
     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
     db.Column('keyword_id', db.Integer, db.ForeignKey('keywords.keyword_id')))
 
-# books_quotes = db.Table("books_quotes",
-#     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')),
-#     db.Column('quote_id', db.Integer, db.ForeignKey('quotes.quote_id')))
-
-# char_books = db.Table("char_books",
-#     db.Column('character_id', db.String(100), db.ForeignKey('characters.character_id')),
-#     db.Column('isbn', db.String(30), db.ForeignKey('books.isbn')))
 
 class Book(db.Model):
 
@@ -68,19 +55,12 @@ class Book(db.Model):
         backref=db.backref('books', lazy='dynamic'))
     locations = db.relationship('Location', secondary=locations_books,
         backref=db.backref('books', lazy='dynamic'))
-    
-    # characters = db.relationship('Character', secondary=char_books,
-    #     backref=db.backref('books', lazy='dynamic'))
+
 
     def get_other_books_within_radius(self, radius):
         """Returns a list of books that are within a determined radius of an instance of a book. """
 
-        ####FYI:: Actually, this query along does not make sense, because a book can be associated with
-        # more than one place...so maybe I should move this to the "category" and
-        #"description/keyword" section
-
         books_within_radius_list = []
-
 
         #Sets the perimeter around a particular long/lat
         radius = float(radius)
@@ -99,17 +79,14 @@ class Book(db.Model):
             for book_obj in books_obj_list:
                 books_within_radius_list.append(book_obj.title)
         unique_books_list = list(set(books_within_radius_list))
-            # books_within_radius_list.append(location_object.books.)
         return ", ".join(unique_books_list)
-        # print range_list
-        # for location_object in range_list:
-        #     location_object
-        # return
+
 
     def __repr__(self):
         """Provide helpful representation when printed."""
 
         return "<Book isbn=%s title=%s>" % (self.isbn, self.title)
+
 
 class Author(db.Model):
 
@@ -121,6 +98,7 @@ class Author(db.Model):
     def __repr__(self):
         """Provide helpful representation when printed."""
         return "<Author author_id=%d author=%s>" % (self.author_id, self.author_name)
+
 
 class Keyword(db.Model):
 
@@ -145,6 +123,7 @@ class Location(db.Model):
     country = db.Column(db.String(100), nullable=True)
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
+
 
     @classmethod
     def get_books_associated_with_location(cls, radius,location):
@@ -183,17 +162,11 @@ class Location(db.Model):
             books_obj_list = location_object.books
             distance = Location.get_distance_between_two_locations(location_object.latitude, location_object.longitude, 
                 latitude, longitude)
-            #could also return a list of book objects -rather than a list of books
-            #this will be more important to return for the server file, but for now
-            #am just returning a list of book titles::
-
+           
             for book_obj in books_obj_list:
                 if book_obj not in loc_obj_dist_dict:
                     loc_obj_dist_dict[book_obj] = distance
-                 
-        #important to turn the list into a set in order to avoid getting book titles
-        #multiple times when a book is associated with multiple places within a radius
-        
+                        
         pprint.pprint(loc_obj_dist_dict)
 
         sorted_ = sorted(loc_obj_dist_dict, key=lambda b: (loc_obj_dist_dict[b], b.title))
@@ -212,14 +185,7 @@ class Location(db.Model):
         longitudes and latitudes.  
         http://rosettacode.org/wiki/Haversine_formula
         """
-        ## Since this is being used within the above class method (get_books_associated_with_location),
-        ## I will have alrady calculated the lat and long for the location in question, so I won't need
-        ## to use the geocoder library to find the lat/long (see below), but I'm saving the lines of code 
-        ## as backup.
-        # latlon2 = geocoder.google(location2).latlng #returns a list with the latitude and longitude, respectively
-        # print latlon2
-        # latitude2 = latlon2[0]
-        # longitude2 = latlon2[1]
+        
         R = float(3959) # This is Earth's radius in miles;radius in kilometers is 6372.8
 
         #convert decimal degress to radians
@@ -259,6 +225,7 @@ class Category(db.Model):
 
         return "<Category id: %d category: %s>" % (self.category_id, self.category)
 
+
 class Event(db.Model):
 
     __tablename__ = "events"
@@ -271,6 +238,7 @@ class Event(db.Model):
 
         return "<Important event id= %d, event= %s>" % (self.event_id, self.event)
 
+
 class Quote(db.Model):
 
     __tablename__ = "quotes"
@@ -280,12 +248,11 @@ class Quote(db.Model):
 
     book = db.relationship("Book", backref=db.backref("quotes", order_by=quote_id))
 
-    # books = db.relationship("Book", secondary=books_quotes,
-    #     backref=db.backref('quotes', lazy='dynamic'))
-
+    
     def __repr__(self):
         #how do I reference the book for this?
         return "<QUOTE ID: %d QUOTE: %s>" % (self.quote_id, self.quote)
+
 
 class Character(db.Model):
 
@@ -300,6 +267,7 @@ class Character(db.Model):
 
         return "<CHARACTER ID: %d CHARACTER: %s>" % (self.character_id, self.character)
 
+
 class Award(db.Model):
 
     __tablename__ = "awards"
@@ -312,10 +280,6 @@ class Award(db.Model):
     def __repr__(self):
 
         return "<AWARD id: %d name: %s>" % (self.award_id, self.award)
-
-
-
-
 
 # End
 ##############################################################################
@@ -333,8 +297,6 @@ def connect_to_db(app):
 
 
 if __name__ == "__main__":
-    # As a convenience, if we run this module interactively, it will leave
-    # you in a state of being able to work with the database directly.
 
     # So that we can use Flask-SQLAlchemy, we'll make a Flask app
     from flask import Flask
