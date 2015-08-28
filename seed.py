@@ -1,6 +1,6 @@
 import requests
 
-import os #allows access to environmental variables
+import os # allows access to environmental variables
 
 from bs4 import BeautifulSoup, SoupStrainer #beautifulsoup library parses html/xml documents
 
@@ -33,14 +33,14 @@ from keyword_seeding_using_nltk import *
 
 
 
-#Maximum number of results to return. (integer, 0-40)
+# Maximum number of results to return. (integer, 0-40)
 MAX_RESULTS = 20
-#Index of the first result to return (starts at 0) (integer, 0+)
+# Index of the first result to return (starts at 0) (integer, 0+)
 START_INDEX = 0
 
 
-# #Note: you must run `source secrets.sh` before running this file
-# #to make sure these environmental variables are set.
+# # Note: you must run `source secrets.sh` before running this file
+# # to make sure these environmental variables are set.
 apikey = os.environ['LIBRARYTHING_DEVELOP_KEY']
 google_api_key = os.environ['GOOGLE_API_KEY']
 
@@ -132,17 +132,17 @@ def create_book_author_instance(response):
     the database.  Categories and author information are also appended to separate association tables."""
     isbn_list = []
     list_of_book_objects = []
-    # #this "for loop" iterates through the response dictionary, which consists of books and a
-    # #dictionary of information about the books (volumeInfo) as the key and value pair
+    # # this "for loop" iterates through the response dictionary, which consists of books and a
+    # # dictionary of information about the books (volumeInfo) as the key and value pair
     for book_dict in response.get('items', []):
         # #I only want to store the book if it has an ISBN associated with it (could be an actual value
-        # #or a None)
+        # # or a None)
         if book_dict.get('volumeInfo', {}).get('industryIdentifiers'):
             isbn_type = book_dict.get('volumeInfo', {}).get('industryIdentifiers')[0].get('type')
             isbn = book_dict.get('volumeInfo', {}).get("industryIdentifiers")[0].get('identifier')
             print isbn
 
-            # #Since the value could be "None", this "if" checks for an actual isbn value
+            # # Since the value could be "None", this "if" checks for an actual isbn value
             if isbn:
                 title = book_dict.get('volumeInfo', {}).get('title')
                 print "The title: ", title
@@ -209,7 +209,7 @@ def create_book_author_instance(response):
                         print "instances of author created"
                     if categories:
                         for item in categories:
-                            #some categories are longer than 40 characters and causing breaks in seeding loop
+                            # some categories are longer than 40 characters and causing breaks in seeding loop
                             if len(item) > 40:
                                 item = item[:40]
                             category_instance = Category(category = item)
@@ -265,7 +265,7 @@ def create_location_instance(list_tuples_commknow_isbn):
            
             for child in root.findall("./lt:ltml/lt:item/lt:commonknowledge/lt:fieldList/lt:field[@name='placesmentioned']/lt:versionList/lt:version/lt:factList/*",ns):
                 place = child.text
-                # print place
+
                 place_list = place.split(', ')
                 print place_list
                 
@@ -293,8 +293,8 @@ def create_location_instance(list_tuples_commknow_isbn):
                     db.session.add(location)
                     book.locations.append(location)
 
-            #WARNING/FYI: FutureWarning: The behavior of this method will change in
-            #future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+            # WARNING/FYI: FutureWarning: The behavior of this method will change in
+            # future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
             if root.find("lt:ltml", ns) is not None:
                 if root.find("lt:ltml", ns).find("lt:item", ns) is not None:
                     if root.find("lt:ltml", ns).find("lt:item", ns).find("lt:commonknowledge", ns) is not None:
@@ -352,7 +352,7 @@ def get_longitude_latitude_of_location():
     location_dict= {}
 
     for place in location_obj_list:
-        # try:
+
         if not place.city_county:
             location = place.state + ", " + place.country
             print location
