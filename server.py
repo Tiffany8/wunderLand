@@ -83,8 +83,8 @@ def search_for_books():
 
 @app.route("/search/kmeans")
 def get_kmeans_graph():
-    """GETs user location query, runs location through a Location class function called 'get books 
-    associated with location' from my Model.py and returns a list of book objects associated with a 
+    """GETs user location query, runs location through a Location class function called 'get books
+    associated with location' from my Model.py and returns a list of book objects associated with a
     location with the user's input radius.  Books are filtered out based on whether they have a description
     longer than 20 words."""
     user_location_query = flaskrequest.args.get('search-input')
@@ -131,7 +131,7 @@ def books_associated_with_keyword_page():
         jsonify_search_result_list.append(book_dict)
 
     print "search complete"
-    
+
     return jsonify(keywordbooks = jsonify_search_result_list, keyword=keyword)
 
 
@@ -148,7 +148,7 @@ def get_location_return_nearby_venues():
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the point
     # that we invoke the DebugToolbarExtension
-    app.debug = True
+    app.debug = False
 
     connect_to_db(app)
 
